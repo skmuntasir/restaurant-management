@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Prevent white overscroll flash on all platforms */
+html, body {
+  background-color: #1f1f1f;
+  overscroll-behavior: none;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+}
+
+#root {
+  background-color: #1f1f1f;
+  min-height: 100%;
+}
+
+/* FullScreenLoader.css */
+
+.fullscreen-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #1f1f1f; /* White background with some transparency */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Ensure it's on top of other content */
+}
+
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #f6b100; /* Blue color for spinner */
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Slim, visible scrollbar for scrollable panels (Recent Orders, etc.) */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3a transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #3a3a3a;
+  border-radius: 999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #4a4a4a;
+}
+
+/* ─── Receipt: hidden on screen, shown only when printing ─── */
+.print-receipt-body {
+  display: none;
+}
+
+@media print {
+  /* 1. Hide the entire page */
+  body * {
+    visibility: hidden !important;
+    overflow: visible !important;
+  }
+
+  /* 2. Show ONLY the receipt */
+  .print-receipt-body {
+    display: block !important;
+    visibility: visible !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    padding: 24px !important;
+    background: #fff !important;
+    color: #000 !important;
+    z-index: 99999 !important;
+  }
+  .print-receipt-body * {
+    visibility: visible !important;
+    color: #000 !important;
+  }
+
+  .receipt-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 6px;
+  }
+  .receipt-meta {
+    font-size: 11px;
+    color: #444;
+    margin-bottom: 12px;
+  }
+  .receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+  .receipt-table th,
+  .receipt-table td {
+    border-bottom: 1px solid #ccc;
+    padding: 5px 4px;
+    text-align: left;
+  }
+  .receipt-table th {
+    font-weight: 700;
+    background: #f5f5f5;
+  }
+  .receipt-totals {
+    border-top: 1px solid #000;
+    padding-top: 8px;
+    margin-top: 8px;
+  }
+  .receipt-totals p {
+    font-size: 12px;
+    margin: 3px 0;
+  }
+  .receipt-grand-total {
+    font-weight: 700;
+    font-size: 15px;
+    border-top: 2px solid #000;
+    padding-top: 5px;
+    margin-top: 5px;
+  }
+}
