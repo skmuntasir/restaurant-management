@@ -22,7 +22,7 @@ const Home = () => {
   // whole order history, and downloading it made this screen slower every month.
   const { orders } = useRecentOrders({ refetchInterval: 30000 });
 
-  useEffect(() => { document.title = "Restro | Home"; }, []);
+  useEffect(() => { document.title = "Red Wood | Home"; }, []);
 
   const stats = useMemo(() => {
     const today = new Date();

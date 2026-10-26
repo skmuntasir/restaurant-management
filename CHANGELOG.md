@@ -1,5 +1,9 @@
 # Changelog
 
+## Rebrand: Restro → Red Wood
+- The app is now called **Red Wood**: header, sign-in/sign-up screens, page titles, loading screen, printed receipts and the HTML title/description.
+- Internal storage keys (theme, order draft, session) keep their old names so existing devices don't lose their settings.
+
 ## Sign-up approval
 - New sign-ups (everyone except the very first admin) now wait as **pending** until an admin approves them; they can't sign in or use the API meanwhile.
 - Sign-up shows a "Request sent to the admin" confirmation; signing in early shows an amber "waiting for approval" notice.

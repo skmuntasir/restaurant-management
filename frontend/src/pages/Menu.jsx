@@ -28,7 +28,7 @@ const Menu = () => {
   const discountPct    = useSelector(getDiscountPct);
   const orderMode      = useSelector(selectDraftReady);
   const [sheetOpen, setSheetOpen] = useState(false);
-  useEffect(() => { document.title = orderMode ? "POS | Menu" : "Restro | Our menu"; }, [orderMode]);
+  useEffect(() => { document.title = orderMode ? "POS | Menu" : "Red Wood | Our menu"; }, [orderMode]);
 
   const dishCount = cartItems.reduce((n, i) => n + i.quantity, 0);
   const { total } = computeBill(cartItems.reduce((s, i) => s + i.price, 0), discountPct);

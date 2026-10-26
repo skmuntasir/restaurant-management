@@ -17,7 +17,7 @@ const ReceiptView = ({ receipt: r }) => {
   return (
     <div className="rcpt">
       <div className="rcpt-center">
-        <div className="rcpt-brand">RESTRO</div>
+        <div className="rcpt-brand">RED WOOD</div>
         <div>Restaurant &amp; Dine-in</div>
       </div>
 

@@ -9,7 +9,7 @@ const FullScreenLoader = () => {
           <div className='spinner'></div>
           <img src={logo} alt="" className='absolute inset-0 m-auto h-6 w-6 object-contain' />
         </div>
-        <p className='text-ink-2 text-xs tracking-widest uppercase'>Loading Restro…</p>
+        <p className='text-ink-2 text-xs tracking-widest uppercase'>Loading Red Wood…</p>
       </div>
     </div>
   )

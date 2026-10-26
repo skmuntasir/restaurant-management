@@ -36,7 +36,7 @@ const Auth = () => {
 
   const [ticketNo] = useState(() => String(Math.floor(Date.now() / 1000) % 10000).padStart(4, "0"));
 
-  useEffect(() => { document.title = isRegister ? "Restro | Sign up" : "Restro | Sign in"; }, [isRegister]);
+  useEffect(() => { document.title = isRegister ? "Red Wood | Sign up" : "Red Wood | Sign in"; }, [isRegister]);
 
   // Soft light that follows the cursor
   const handleMouseMove = (e) => {
@@ -72,8 +72,8 @@ const Auth = () => {
         <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#F6B100]/20 blur-3xl" />
 
         <div className="relative flex items-center gap-3">
-          <img src={logo} alt="Restro logo" className="h-11 w-11 rounded-full border border-white/30 p-1" />
-          <span className="text-xl font-semibold tracking-wide">Restro</span>
+          <img src={logo} alt="Red Wood logo" className="h-11 w-11 rounded-full border border-white/30 p-1" />
+          <span className="text-xl font-semibold tracking-wide">Red Wood</span>
         </div>
 
         <div className="relative max-w-lg">
@@ -83,7 +83,7 @@ const Auth = () => {
             <span className="italic text-[#F6B100]">In rhythm.</span>
           </h1>
           <p className="mt-5 max-w-md text-[15px] leading-relaxed text-[#cfc8b8]">
-            Restro keeps your floor, kitchen and billing moving together, so your team can
+            Red Wood keeps your floor, kitchen and billing moving together, so your team can
             focus on the guests.
           </p>
           <ul className="mt-6 flex flex-wrap gap-2">
@@ -104,7 +104,7 @@ const Auth = () => {
         <blockquote className="relative max-w-lg text-sm italic leading-relaxed text-[#b9b2a3]">
           “Serve customers the best food with prompt and friendly service in a welcoming
           atmosphere, and they’ll keep coming back.”
-          <span className="mt-2 block not-italic text-[#F6B100]">— Founder of Restro</span>
+          <span className="mt-2 block not-italic text-[#F6B100]">— Founder of Red Wood</span>
         </blockquote>
       </aside>
 
@@ -116,8 +116,8 @@ const Auth = () => {
         <div className="relative w-full max-w-md">
           {/* Compact brand for small screens */}
           <div className="mb-6 flex items-center justify-center gap-3 lg:hidden">
-            <img src={logo} alt="Restro logo" className="h-10 w-10 rounded-full border border-white/30 p-1" />
-            <span className="text-lg font-semibold tracking-wide">Restro</span>
+            <img src={logo} alt="Red Wood logo" className="h-10 w-10 rounded-full border border-white/30 p-1" />
+            <span className="text-lg font-semibold tracking-wide">Red Wood</span>
           </div>
 
           {/* The ticket "prints" in from the top */}
