@@ -47,7 +47,7 @@ const addCategory = async (req, res, next) => {
 
 const getCategories = async (req, res, next) => {
   try {
-    const categories = await Category.find().sort({ createdAt: 1 });
+    const categories = await Category.find().sort({ createdAt: 1 }).lean();
     res.status(200).json({ success: true, data: categories });
   } catch (error) {
     next(error);

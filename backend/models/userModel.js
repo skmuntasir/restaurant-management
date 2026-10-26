@@ -36,6 +36,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         enum: ['admin', 'cashier', 'Admin', 'Cashier']
+    },
+    // Sign-up approval. New staff sign-ups start as "pending" until an admin
+    // approves them. Accounts created before this field existed have no value
+    // stored, so they fall back to "approved" and keep working untouched.
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'approved'
     }
 }, {
     timestamps: true,
@@ -46,6 +54,9 @@ const userSchema = new mongoose.Schema({
         }
     }
 });
+
+// Fast lookups for login / duplicate-email checks (case-insensitive via collation in the controller).
+userSchema.index({ email: 1 }, { collation: { locale: "en", strength: 2 } });
 
 userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {

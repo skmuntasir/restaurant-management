@@ -1,75 +1,109 @@
-import React from "react";
-import BottomNav from "../components/shared/BottomNav";
+import React, { useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
 import Greetings from "../components/home/Greetings";
 import { BsCashCoin } from "react-icons/bs";
-import { MdOutlineReceiptLong } from "react-icons/md";
+import { MdOutlineReceiptLong, MdOutlinePendingActions, MdOutlineShowChart } from "react-icons/md";
 import MiniCard from "../components/home/MiniCard";
 import RecentOrders from "../components/home/RecentOrders";
 import PopularDishes from "../components/home/PopularDishes";
 import WeeklyRevenueChart from "../components/home/WeeklyRevenueChart";
-import { useQuery } from "@tanstack/react-query";
-import { getOrders } from "../https";
-import { isSameDay, getDateDaysAgo, percentChange } from "../utils";
+import { isSameDay, getDateDaysAgo, percentChange, isOpenOrder } from "../utils";
+import { useRecentOrders } from "../hooks/useOrders";
+
+// Gentle staggered entrance for each block
+const rise = (i) => ({
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  transition: { duration: 0.25, delay: i * 0.04, ease: "easeOut" },
+});
 
 const Home = () => {
-  const { data: resData } = useQuery({
-    queryKey: ["orders"],
-    queryFn: () => getOrders(),
-  });
+  // Only the last ~8 days (plus anything still open) — Home never needed the
+  // whole order history, and downloading it made this screen slower every month.
+  const { orders } = useRecentOrders({ refetchInterval: 30000 });
 
-  const orders = resData?.data?.data || [];
+  useEffect(() => { document.title = "Restro | Home"; }, []);
 
-  const today = new Date();
-  const yesterday = getDateDaysAgo(1);
+  const stats = useMemo(() => {
+    const today = new Date();
+    const yesterday = getDateDaysAgo(1);
 
-  // Total Earning: real paid revenue for today, compared to yesterday
-  const earningsOn = (day) =>
-    orders
-      .filter((o) => o.payment?.isPaid && o.payment?.paidAt && isSameDay(new Date(o.payment.paidAt), day))
-      .reduce((sum, o) => sum + (o.bills?.totalWithTax || 0), 0);
+    const paidOn = (day) =>
+      orders.filter((o) => o.payment?.isPaid && o.payment?.paidAt && isSameDay(new Date(o.payment.paidAt), day));
+    const earningsOn = (day) => paidOn(day).reduce((sum, o) => sum + (o.bills?.totalWithTax || 0), 0);
+    const ordersOn = (day) => orders.filter((o) => o.createdAt && isSameDay(new Date(o.createdAt), day)).length;
 
-  const todayEarnings = earningsOn(today);
-  const yesterdayEarnings = earningsOn(yesterday);
-  const earningsTrend = percentChange(todayEarnings, yesterdayEarnings);
+    const todayEarnings = earningsOn(today);
+    const yesterdayEarnings = earningsOn(yesterday);
+    const todayOrders = ordersOn(today);
+    const yesterdayOrders = ordersOn(yesterday);
 
-  // Today's Orders: real order count for today, compared to yesterday
-  const ordersOn = (day) =>
-    orders.filter((o) => o.createdAt && isSameDay(new Date(o.createdAt), day)).length;
+    const paidToday = paidOn(today).length;
+    const paidYesterday = paidOn(yesterday).length;
+    const avgToday = paidToday ? todayEarnings / paidToday : 0;
+    const avgYesterday = paidYesterday ? yesterdayEarnings / paidYesterday : 0;
 
-  const todayOrders = ordersOn(today);
-  const yesterdayOrders = ordersOn(yesterday);
-  const ordersTrend = percentChange(todayOrders, yesterdayOrders);
+    return {
+      todayEarnings,
+      earningsTrend: percentChange(todayEarnings, yesterdayEarnings),
+      todayOrders,
+      ordersTrend: percentChange(todayOrders, yesterdayOrders),
+      openOrders: orders.filter(isOpenOrder).length,
+      avgToday,
+      avgTrend: percentChange(avgToday, avgYesterday),
+    };
+  }, [orders]);
 
   return (
-    <section className="bg-[#1f1f1f] h-[calc(100vh-5rem)] overflow-y-auto overscroll-none flex gap-3 scrollbar-thin">
-      <div className="flex-[3]">
-        <Greetings />
-        <div className="flex items-center w-full gap-3 px-8 mt-2">
+    <section className="page-ambient h-[calc(100vh-5rem)] overflow-y-auto overscroll-none scrollbar-thin pb-24">
+      <div className="mx-auto max-w-[1400px] space-y-5 px-4 pt-5 sm:px-6 lg:px-8">
+        <motion.div {...rise(0)}>
+          <Greetings openOrders={stats.openOrders} />
+        </motion.div>
+
+        <motion.div {...rise(1)} className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <MiniCard
-            title="Total Earning"
+            title="Total earning"
             icon={<BsCashCoin />}
-            number={todayEarnings.toFixed(0)}
+            number={stats.todayEarnings.toFixed(0)}
             prefix="৳"
-            trendPercent={earningsTrend}
+            trendPercent={stats.earningsTrend}
+            accent="green"
           />
           <MiniCard
-            title="Today's Orders"
+            title="Today's orders"
             icon={<MdOutlineReceiptLong />}
-            number={todayOrders}
-            trendPercent={ordersTrend}
+            number={stats.todayOrders}
+            trendPercent={stats.ordersTrend}
+            accent="gold"
           />
-        </div>
-        <div className="px-4">
-          <WeeklyRevenueChart orders={orders} />
-        </div>
-        <div className="px-4 mt-[-10px]">
-          <RecentOrders />
+          <MiniCard
+            title="Open orders"
+            icon={<MdOutlinePendingActions />}
+            number={stats.openOrders}
+            trendLabel="pending or in process"
+            accent="rose"
+          />
+          <MiniCard
+            title="Avg. bill"
+            icon={<MdOutlineShowChart />}
+            number={stats.avgToday.toFixed(0)}
+            prefix="৳"
+            trendPercent={stats.avgTrend}
+            accent="blue"
+          />
+        </motion.div>
+
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+          <div className="space-y-5 lg:col-span-3">
+            <motion.div {...rise(2)}><WeeklyRevenueChart orders={orders} /></motion.div>
+            <motion.div {...rise(3)}><RecentOrders /></motion.div>
+          </div>
+          <motion.div {...rise(4)} className="lg:col-span-2">
+            <PopularDishes />
+          </motion.div>
         </div>
       </div>
-      <div className="flex-[2]">
-        <PopularDishes />
-      </div>
-      <BottomNav />
     </section>
   );
 };

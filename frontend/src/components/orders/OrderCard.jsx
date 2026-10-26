@@ -1,19 +1,29 @@
-import React, { useState } from "react";
-import { FaCheckDouble, FaClock, FaSpinner, FaRegCreditCard } from "react-icons/fa";
+import React, { useState, memo } from "react";
+import { motion } from "framer-motion";
+import { FaCheckDouble, FaClock, FaSpinner, FaRegCreditCard, FaBan } from "react-icons/fa";
+import { FiPrinter } from "react-icons/fi";
+import { MdTableBar } from "react-icons/md";
 import { getAvatarName, getBgColor, formatDate } from "../../utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateOrder } from "../../https";
 import { enqueueSnackbar } from "notistack";
 import PaymentModal from "./PaymentModal";
+import { printReceipt } from "../shared/printReceipt";
+import { receiptFromOrder } from "../../utils/receipt";
+import CancelOrderModal from "./CancelOrderModal";
+import { shortOrderId } from "../../utils";
 import { useDispatch } from "react-redux";
 import { addNotification } from "../../redux/slices/notificationsSlice";
 
-const STATUS_OPTIONS = ["pending", "in process", "completed"];
+// Forward-only. "Completed" isn't here on purpose: an order finishes when it is
+// paid for (that also frees the table), never by flipping a dropdown.
+const STATUS_OPTIONS = ["pending", "in process"];
 
 const statusMeta = {
-  pending:    { icon: <FaClock    className="inline mr-1 text-orange-400" />, color: "text-orange-400 bg-[#3a2000]" },
-  "in process": { icon: <FaSpinner  className="inline mr-1 text-yellow-400 animate-spin" />, color: "text-yellow-400 bg-[#3a3000]" },
-  completed:  { icon: <FaCheckDouble className="inline mr-1 text-blue-400" />, color: "text-blue-400 bg-[#1a2a3a]" },
+  pending:      { icon: <FaClock />,                              pill: "text-orange-300 bg-orange-500/10 border-orange-500/25", bar: "from-orange-500 to-orange-300" },
+  "in process": { icon: <FaSpinner className="animate-spin" />,   pill: "text-yellow-300 bg-yellow-500/10 border-yellow-500/25", bar: "from-[#C98F00] to-[#FFD25E]" },
+  completed:    { icon: <FaCheckDouble />,                        pill: "text-blue-300 bg-blue-500/10 border-blue-500/25",       bar: "from-blue-500 to-sky-300" },
+  cancelled:    { icon: <FaBan />,                                pill: "text-red-300 bg-red-500/10 border-red-500/25",          bar: "from-red-500 to-red-300" },
 };
 
 const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
@@ -26,6 +36,7 @@ const OrderCard = ({ order }) => {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isCancelOpen, setIsCancelOpen] = useState(false);
 
   const updateMutation = useMutation({
     mutationFn: ({ id, status }) => updateOrder(id, { orderStatus: status }),
@@ -39,100 +50,138 @@ const OrderCard = ({ order }) => {
         message: `Order #${order._id?.slice(-5)} for ${order.customerDetails?.name || "Guest"} marked as "${status}"`,
       }));
     },
-    onError: () => enqueueSnackbar("Failed to update order!", { variant: "error" }),
+    onError: (err) => enqueueSnackbar(err?.response?.data?.message || "Failed to update order!", { variant: "error" }),
   });
 
   if (!order) return null;
 
   const { customerDetails, orderStatus, bills, items, table, createdAt, _id, payment } = order;
-  const meta       = statusMeta[orderStatus] || statusMeta["pending"];
+  const meta         = statusMeta[orderStatus] || statusMeta.pending;
+  const isOpen       = orderStatus === "pending" || orderStatus === "in process";
   const hideCustomer = isOlderThan24h(createdAt);
   const displayName  = hideCustomer ? "Guest" : (customerDetails?.name || "Customer");
   const avatarName   = getAvatarName(displayName);
+  const extraTables  = order.mergedTables?.map((t) => t?.tableNo).filter(Boolean) || [];
 
   return (
-    <div className="w-[260px] bg-[#2c2c2c] p-3 rounded-xl mb-4 shadow-md border border-[#3a3a3a]">
+    <motion.div
+      layout="position"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.28 }}
+      
+      className="glass-card group flex flex-col overflow-hidden transition-shadow"
+    >
+      {/* status colour strip */}
 
-      {/* Customer row */}
-      <div className="flex items-center gap-3 mb-2">
-        <button className="p-2 text-lg font-bold rounded-lg text-white min-w-[40px]" style={{ backgroundColor: getBgColor() }}>
-          {avatarName || "N/A"}
-        </button>
-        <div className="flex flex-col items-start gap-1">
-          <h1 className="text-[#f5f5f5] text-sm font-semibold tracking-wide">
-            {displayName}
-          </h1>
-          <p className="text-[#ababab] text-xs">#{_id?.slice(-5)} / Dine in</p>
-        </div>
-      </div>
-
-      {/* Status row */}
-      <div className="flex items-center justify-between mb-2 gap-2">
-        <span className={`text-xs px-2 py-1 rounded-lg flex items-center capitalize ${meta.color}`}>
-          {meta.icon}{orderStatus}
-        </span>
-        <select
-          value={orderStatus}
-          onChange={(e) => updateMutation.mutate({ id: _id, status: e.target.value })}
-          disabled={updateMutation.isPending || orderStatus === "completed"}
-          className="bg-[#1a1a1a] text-[#f5f5f5] text-xs px-2 py-1 rounded-lg border border-gray-600 focus:outline-none disabled:opacity-50 capitalize"
-        >
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Date / item count */}
-      <div className="flex justify-between items-center text-[#ababab] text-xs mb-2">
-        <p>{createdAt ? formatDate(new Date(createdAt)) : ""}</p>
-        <p>{items?.length || 0} Items</p>
-      </div>
-
-      {table && (
-        <p className="text-[#f6b100] text-xs border border-[#f6b100] px-2 py-1 rounded mb-2 inline-block">
-          Table No: {table?.tableNo ?? "N/A"}
-        </p>
-      )}
-
-      <hr className="w-full mt-2 border-t border-gray-700" />
-
-      {/* Bill breakdown */}
-      <div className="mt-2 space-y-1">
-        {bills?.discountPercent > 0 && (
-          <div className="flex items-center justify-between">
-            <span className="text-green-400 text-xs">Discount ({bills.discountPercent}%)</span>
-            <span className="text-green-400 text-xs font-semibold">−৳{bills.discountAmount?.toFixed(2)}</span>
-          </div>
-        )}
-        <div className="flex items-center justify-between">
-          <h1 className="text-[#f5f5f5] text-sm font-semibold">Total</h1>
-          <p className="text-[#f5f5f5] text-sm font-semibold">
-            ৳{bills?.totalWithTax?.toFixed(2) || "0.00"}
-          </p>
-        </div>
-      </div>
-
-      {/* Payment row */}
-      <div className="flex items-center justify-between mt-2">
-        <span className={`text-xs px-2 py-1 rounded-lg font-medium ${
-          payment?.isPaid ? "text-green-400 bg-[#102a16]" : "text-red-400 bg-[#2a1010]"
-        }`}>
-          {payment?.isPaid ? `Paid (${payment.method})` : "Unpaid"}
-        </span>
-        {!payment?.isPaid && (
-          <button
-            onClick={() => setIsPaymentOpen(true)}
-            className="flex items-center gap-1 text-xs bg-[#F6B100] hover:bg-yellow-500 text-gray-900 font-bold px-3 py-1.5 rounded-lg transition-colors"
+      <div className="flex flex-1 flex-col p-4">
+        {/* Customer row */}
+        <div className="flex items-center gap-3">
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-base font-bold text-white shadow-inner"
+            style={{ backgroundColor: getBgColor(displayName) }}
           >
-            <FaRegCreditCard size={12} /> Pay
-          </button>
-        )}
+            {avatarName || "N/A"}
+          </span>
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-sm font-semibold text-ink">{displayName}</h3>
+            <p className="text-xs text-ink-3">#{shortOrderId(_id)} · Dine in</p>
+          </div>
+          {table && (
+            <span className="flex shrink-0 items-center gap-1 rounded-lg border border-[#F6B100]/30 bg-[#F6B100]/10 px-2 py-1 text-[11px] font-semibold text-accent">
+              <MdTableBar />
+              {table?.tableNo ?? "N/A"}{extraTables.length > 0 && ` + ${extraTables.join(", ")}`}
+            </span>
+          )}
+        </div>
+
+        {/* Status row */}
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <span className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize ${meta.pill}`}>
+            {meta.icon}{orderStatus}
+          </span>
+          {orderStatus === "pending" && (
+            <select
+              value={orderStatus}
+              onChange={(e) => updateMutation.mutate({ id: _id, status: e.target.value })}
+              disabled={updateMutation.isPending}
+              aria-label="Change order status"
+              className="cursor-pointer rounded-lg border border-tint/10 bg-surface px-2 py-1 text-xs capitalize text-ink focus:border-[#F6B100]/60 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {STATUS_OPTIONS.map((st) => (
+                <option key={st} value={st}>{st.charAt(0).toUpperCase() + st.slice(1)}</option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        {/* Date / item count */}
+        <div className="mt-3 flex items-center justify-between text-xs text-ink-3">
+          <p>{createdAt ? formatDate(new Date(createdAt)) : ""}</p>
+          <p>{items?.length || 0} item{(items?.length || 0) !== 1 ? "s" : ""}</p>
+        </div>
+
+        <div className="gold-rule my-3 opacity-60" />
+
+        {/* Bill */}
+        <div className="space-y-1">
+          {bills?.discountPercent > 0 && (
+            <div className="flex items-center justify-between text-xs text-green-400">
+              <span>Discount ({bills.discountPercent}%)</span>
+              <span className="font-semibold">−৳{bills.discountAmount?.toFixed(2)}</span>
+            </div>
+          )}
+          <div className="flex items-baseline justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-2">Total</span>
+            <span className="font-num text-xl font-bold text-ink">৳{bills?.totalWithTax?.toFixed(2) || "0.00"}</span>
+          </div>
+        </div>
+
+        {/* Payment row */}
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+            payment?.isPaid
+              ? "border-green-500/25 bg-green-500/10 text-green-400"
+              : "border-red-500/25 bg-red-500/10 text-red-400"
+          }`}>
+            {payment?.isPaid ? `Paid · ${payment.method}` : orderStatus === "cancelled" ? "Cancelled" : "Unpaid"}
+          </span>
+          <div className="flex items-center gap-2">
+            {orderStatus !== "cancelled" && (
+              <button
+                onClick={() => printReceipt(receiptFromOrder(order))}
+                title={payment?.isPaid ? "Print receipt" : "Print bill"}
+                aria-label={payment?.isPaid ? "Print receipt" : "Print bill"}
+                className="rounded-lg border border-tint/10 bg-tint/5 p-2 text-ink-2 transition-colors hover:border-[#F6B100]/50 hover:text-accent"
+              >
+                <FiPrinter size={14} />
+              </button>
+            )}
+            {isOpen && !payment?.isPaid && (
+              <>
+                <button
+                  onClick={() => setIsCancelOpen(true)}
+                  className="rounded-lg px-2 py-1.5 text-xs font-semibold text-ink-3 transition-colors hover:text-red-400"
+                >
+                  Cancel
+                </button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsPaymentOpen(true)}
+                  className="flex items-center gap-1.5 rounded-lg bg-[#F6B100] px-3.5 py-1.5 text-xs font-bold text-[#1a1a1a] shadow-glow transition-colors hover:bg-[#FFD25E]"
+                >
+                  <FaRegCreditCard size={12} /> Pay & close
+                </motion.button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       <PaymentModal isOpen={isPaymentOpen} onClose={() => setIsPaymentOpen(false)} order={order} />
-    </div>
+      <CancelOrderModal isOpen={isCancelOpen} onClose={() => setIsCancelOpen(false)} order={order} />
+    </motion.div>
   );
 };
 
-export default OrderCard;
+export default memo(OrderCard);

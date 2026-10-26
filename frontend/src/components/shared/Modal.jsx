@@ -1,132 +1,63 @@
-import React, { useState } from "react";
+import React from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoMdClose } from "react-icons/io";
-import { useDispatch } from "react-redux";
-import { setCustomer } from "../../redux/slices/customerSlice";
-import { enqueueSnackbar } from "notistack";
-import { useNavigate } from "react-router-dom";
+import useEscapeKey from "../../hooks/useEscapeKey";
 
-const Modal = ({
-  // Table-booking mode
-  setIsModalOpen,
-  tableId,
-  tableNo,
-  // Generic mode
-  isOpen,
-  onClose,
-  title,
-  children,
-}) => {
-  const isGeneric = typeof isOpen !== "undefined";
-  const visible = isGeneric ? isOpen : true;
+/**
+ * Generic modal: <Modal isOpen onClose title>children</Modal>
+ *
+ * Closes on Escape or a click on the backdrop. (The old "table booking"
+ * mode of this component was never used anywhere and has been removed.)
+ * AnimatePresence now wraps the conditional so the exit animation actually
+ * plays — before, the component returned null first and it never could.
+ */
+const Modal = ({ isOpen, onClose, title, children }) => {
+  useEscapeKey(() => onClose?.(), Boolean(isOpen));
 
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", phone: "", guests: "" });
-  const [errors, setErrors] = useState({});
-
-  const close = () => {
-    if (onClose) onClose();
-    else if (setIsModalOpen) setIsModalOpen(false);
-  };
-
-  const validate = () => {
-    const e = {};
-    if (!form.name.trim()) e.name = "Name is required";
-    if (!form.phone.trim() || !/^\d{7,}$/.test(form.phone.trim()))
-      e.phone = "Valid phone required (min 7 digits)";
-    if (!form.guests || Number(form.guests) < 1)
-      e.guests = "At least 1 guest required";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleProceed = () => {
-    if (!validate()) return;
-    dispatch(
-      setCustomer({
-        name: form.name.trim(),
-        phone: form.phone.trim(),
-        guests: Number(form.guests),
-      })
-    );
-    close();
-    navigate("/menu");
-  };
-
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
-  };
-
-  if (!visible) return null;
-
-  return (
+  // Render into <body> via a portal. Modals used to render *inside* their parent
+  // (e.g. the animated OrderCard). A transformed ancestor becomes the containing
+  // block for `position: fixed`, so the modal got trapped and clipped inside the
+  // card and flickered as the card's hover animation toggled. Portalling it to
+  // <body> keeps it truly full-screen and independent of the parent.
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+      {isOpen && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.92, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.92, y: 20 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-          className="bg-[#1e1e1e] border border-[#333] rounded-2xl shadow-2xl w-full max-w-md"
+          key="backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          onMouseDown={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
         >
-          <div className="flex justify-between items-center px-6 py-4 border-b border-[#2a2a2a]">
-            <h2 className="text-[#f5f5f5] text-lg font-bold">
-              {title || `Table ${tableNo} — Customer Details`}
-            </h2>
-            <button
-              onClick={close}
-              className="text-[#ababab] hover:text-red-400 transition-colors"
-            >
-              <IoMdClose size={22} />
-            </button>
-          </div>
-
-          <div className="px-6 py-5">
-            {children ? (
-              children
-            ) : (
-              <div className="space-y-4">
-                {[
-                  { label: "Customer Name", name: "name", placeholder: "e.g. John Doe", type: "text" },
-                  { label: "Phone Number", name: "phone", placeholder: "e.g. 01712345678", type: "tel" },
-                  { label: "Number of Guests", name: "guests", placeholder: "e.g. 2", type: "number" },
-                ].map(({ label, name, placeholder, type }) => (
-                  <div key={name}>
-                    <label className="block text-[#ababab] text-sm font-medium mb-1.5">
-                      {label}
-                    </label>
-                    <input
-                      type={type}
-                      name={name}
-                      value={form[name]}
-                      onChange={handleChange}
-                      placeholder={placeholder}
-                      className={`w-full bg-[#111] border rounded-lg px-4 py-3 text-white placeholder-[#555] focus:outline-none focus:ring-2 transition-all ${
-                        errors[name]
-                          ? "border-red-500 focus:ring-red-500/30"
-                          : "border-[#333] focus:ring-yellow-500/30 focus:border-yellow-500/50"
-                      }`}
-                    />
-                    {errors[name] && (
-                      <p className="text-red-400 text-xs mt-1">{errors[name]}</p>
-                    )}
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={handleProceed}
-                  className="w-full bg-[#F6B100] hover:bg-yellow-500 text-gray-900 font-bold rounded-xl py-3 mt-2 transition-colors"
-                >
-                  Proceed to Menu →
-                </button>
-              </div>
-            )}
-          </div>
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="glass-card w-full max-w-md overflow-hidden"
+          >
+            <div className="flex items-center justify-between border-b border-tint/5 px-6 py-4">
+              <h2 className="font-display text-xl font-bold text-ink">{title}</h2>
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="rounded-lg p-1 text-ink-2 transition-colors hover:bg-tint/5 hover:text-red-400"
+              >
+                <IoMdClose size={22} />
+              </button>
+            </div>
+            <div className="px-6 py-5">{children}</div>
+          </motion.div>
         </motion.div>
-      </div>
-    </AnimatePresence>
+      )}
+    </AnimatePresence>,
+    document.body
   );
 };
 

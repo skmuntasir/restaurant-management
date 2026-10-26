@@ -7,24 +7,24 @@ const CustomerInfo = () => {
   const customerData = useSelector((state) => state.customer);
 
   return (
-    <div className="flex items-center justify-between px-4 py-3">
-      <div className="flex flex-col items-start">
-        <h1 className="text-md text-[#f5f5f5] font-semibold tracking-wide">
-          {customerData.customerName || "Customer Name"}
-        </h1>
-        <p className="text-xs text-[#ababab] font-medium mt-1">
-          #{customerData.orderId || "N/A"} / Dine in
+    <div className="flex items-center justify-between gap-3 px-5 py-4">
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">
+          {customerData.appendOrderId ? "Adding to order" : "Current order"}
         </p>
-        <p className="text-xs text-[#ababab] font-medium mt-1">
-          Table: {customerData.tableNo || "Not selected"}
-        </p>
-        <p className="text-xs text-[#ababab] font-medium mt-1">
-          {formatDate(dateTime)}
+        <h2 className="mt-1 truncate font-display text-lg font-semibold text-ink">
+          {customerData.customerName || "Guest"}
+        </h2>
+        <p className="mt-1 text-xs text-ink-3">#{customerData.orderId || "N/A"} · Dine in · {formatDate(dateTime)}</p>
+        <p className="mt-1 text-xs text-ink-2">
+          Table {customerData.tableNo || "not selected"}
+          {customerData.additionalTableIds?.length > 0 && ` + ${customerData.additionalTableIds.length} more`}
+          {customerData.guests > 0 && ` · ${customerData.guests} guest${customerData.guests > 1 ? "s" : ""}`}
         </p>
       </div>
-      <button className="bg-[#f6b100] p-3 text-xl font-bold rounded-lg">
-        {getAvatarName(customerData.customerName) || "CN"}
-      </button>
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#F6B100] text-lg font-bold text-[#1a1a1a] shadow-glow">
+        {getAvatarName(customerData.customerName) || "G"}
+      </span>
     </div>
   );
 };

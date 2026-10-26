@@ -3,6 +3,7 @@ const createHttpError = require("http-errors");
 const mongoose = require("mongoose");
 const Order = require("../models/orderModel");
 const config = require("../config/config");
+const { settleOrderPayment, applyPaymentDiscount } = require("../services/orderService");
 
 /**
  * Pseudo / Demo Payment Provider
@@ -31,7 +32,7 @@ const generatePaymentId = (prefix) =>
  */
 const createPaymentOrder = async (req, res, next) => {
   try {
-    const { orderId } = req.body;
+    const { orderId, discount } = req.body;
     if (!mongoose.Types.ObjectId.isValid(orderId))
       return next(createHttpError(400, "Invalid order id!"));
 
@@ -39,6 +40,11 @@ const createPaymentOrder = async (req, res, next) => {
     if (!order) return next(createHttpError(404, "Order not found!"));
     if (order.payment?.isPaid)
       return next(createHttpError(400, "This order has already been paid!"));
+    if (["merged", "cancelled"].includes(order.orderStatus))
+      return next(createHttpError(400, `A ${order.orderStatus} order cannot be paid.`));
+
+    // A discount given at the till is applied BEFORE the amount is fixed.
+    applyPaymentDiscount(order, discount, req.user.role);
 
     const demoOrderId = generatePaymentId("pay_order");
     const amountInPaisa = Math.round(order.bills.totalWithTax * 100);
@@ -74,13 +80,6 @@ const verifyPayment = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(orderId))
       return next(createHttpError(400, "Invalid order id!"));
 
-    const order = await Order.findById(orderId);
-    if (!order) return next(createHttpError(404, "Order not found!"));
-    if (order.payment?.isPaid)
-      return next(createHttpError(400, "This order has already been paid!"));
-    if (order.payment.razorpayOrderId !== demoOrderId)
-      return next(createHttpError(400, "Payment session id does not match this order!"));
-
     const demoPaymentId = generatePaymentId("pay");
     const signature = crypto
       .createHmac("sha256", PAYMENT_SECRET)
@@ -99,11 +98,15 @@ const verifyPayment = async (req, res, next) => {
     if (!isValid)
       return next(createHttpError(400, "Payment verification failed!"));
 
-    order.payment.isPaid = true;
-    order.payment.method = "card";
-    order.payment.razorpayPaymentId = demoPaymentId;
-    order.payment.paidAt = new Date();
-    await order.save();
+    // Marks the order paid, completes it and frees its table(s) in one step.
+    const order = await settleOrderPayment(orderId, {
+      method: "card",
+      paymentFields: { razorpayPaymentId: demoPaymentId },
+      check: (o) => {
+        if (o.payment.razorpayOrderId !== demoOrderId)
+          throw createHttpError(400, "Payment session id does not match this order!");
+      },
+    });
 
     res.status(200).json({ success: true, message: "Payment verified!", data: order });
   } catch (error) {
@@ -117,19 +120,13 @@ const verifyPayment = async (req, res, next) => {
  */
 const recordCashPayment = async (req, res, next) => {
   try {
-    const { orderId } = req.body;
+    const { orderId, discount } = req.body;
     if (!mongoose.Types.ObjectId.isValid(orderId))
       return next(createHttpError(400, "Invalid order id!"));
 
-    const order = await Order.findById(orderId);
-    if (!order) return next(createHttpError(404, "Order not found!"));
-    if (order.payment?.isPaid)
-      return next(createHttpError(400, "This order has already been paid!"));
-
-    order.payment.isPaid = true;
-    order.payment.method = "cash";
-    order.payment.paidAt = new Date();
-    await order.save();
+    // Marks the order paid, completes it and frees its table(s) in one step.
+    // A discount given at the till is applied in the same transaction.
+    const order = await settleOrderPayment(orderId, { method: "cash", discount, role: req.user.role });
 
     res.status(200).json({ success: true, message: "Cash payment recorded!", data: order });
   } catch (error) {

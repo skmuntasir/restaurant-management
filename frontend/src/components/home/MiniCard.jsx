@@ -1,33 +1,68 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, animate, useReducedMotion } from 'framer-motion';
 
-const MiniCard = ({ title, icon, number, trendPercent, trendLabel = "than yesterday", prefix = "" }) => {
+// Counts up to `value` whenever it changes (e.g. when the first data arrives).
+const CountUp = ({ value }) => {
+  const reduce = useReducedMotion();
+  const target = Number(value) || 0;
+  const [display, setDisplay] = useState(reduce ? target : 0);
+  const prev = useRef(reduce ? target : 0);
+
+  useEffect(() => {
+    if (reduce) { setDisplay(target); prev.current = target; return; }
+    const controls = animate(prev.current, target, {
+      duration: 0.9,
+      ease: "easeOut",
+      onUpdate: (v) => setDisplay(Math.round(v)),
+      onComplete: () => { prev.current = target; },
+    });
+    return () => controls.stop();
+  }, [target, reduce]);
+
+  return <>{display.toLocaleString("en-US")}</>;
+};
+
+const ACCENTS = {
+  gold:  { chip: "bg-[#F6B100]/15 text-accent", glow: "from-[#F6B100]/20" },
+  green: { chip: "bg-[#02ca3a]/15 text-[#02ca3a]", glow: "from-[#02ca3a]/20" },
+  blue:  { chip: "bg-[#3b82f6]/15 text-[#60a5fa]", glow: "from-[#3b82f6]/20" },
+  rose:  { chip: "bg-[#f43f5e]/15 text-[#fb7185]", glow: "from-[#f43f5e]/20" },
+};
+
+const MiniCard = ({ title, icon, number, trendPercent, trendLabel = "vs yesterday", prefix = "", accent = "gold" }) => {
   const hasTrend = typeof trendPercent === "number" && isFinite(trendPercent);
   const isIncrease = hasTrend && trendPercent >= 0;
+  const a = ACCENTS[accent] || ACCENTS.gold;
 
   return (
-    <div className="bg-[#1a1a1a] py-3 px-3 rounded-lg w-full">
-      <div className="flex items-start justify-between">
-        <h1 className="text-[#f5f5f5] text-sm font-semibold tracking-wide">{title}</h1>
-        <button className={`${title === 'Total Earning' ? 'bg-[#02ca3a]' : 'bg-[#f6b100]'} p-2 rounded-lg text-[#f5f5f5] text-xl`}>
-          {icon}
-        </button>
+    <motion.div
+      
+      transition={{ type: "spring", stiffness: 300, damping: 22 }}
+      className="glass-card group overflow-hidden p-5"
+    >
+
+      <div className="relative flex items-start justify-between">
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-2">{title}</h2>
+        <span className={`${a.chip} rounded-xl p-2 text-lg`}>{icon}</span>
       </div>
-      <div>
-        <h1 className="text-[#f5f5f5] text-3xl font-bold mt-4">{prefix}{number}</h1>
-        <h1 className="text-[#f5f5f5] text-sm mt-1">
-          {hasTrend ? (
-            <>
-              <span className={isIncrease ? "text-[#02ca3a]" : "text-red-500"}>
-                {isIncrease ? "▲" : "▼"} {Math.abs(trendPercent).toFixed(1)}%
-              </span>{" "}
-              {trendLabel}
-            </>
-          ) : (
-            <span className="text-[#ababab]">{trendLabel}</span>
-          )}
-        </h1>
-      </div>
-    </div>
+
+      <p className="relative mt-4 font-num text-3xl font-bold tracking-tight text-ink">
+        {prefix}<CountUp value={number} />
+      </p>
+
+      <p className="relative mt-2 text-xs">
+        {hasTrend ? (
+          <>
+            <span className={`rounded-full px-2 py-0.5 font-semibold ${isIncrease ? "bg-[#02ca3a]/15 text-[#02ca3a]" : "bg-red-500/15 text-red-400"}`}>
+              {isIncrease ? "▲" : "▼"} {Math.abs(trendPercent).toFixed(1)}%
+            </span>{" "}
+            <span className="text-ink-3">{trendLabel}</span>
+          </>
+        ) : (
+          <span className="text-ink-3">{trendLabel}</span>
+        )}
+      </p>
+    </motion.div>
   );
 };
 

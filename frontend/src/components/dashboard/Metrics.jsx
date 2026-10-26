@@ -1,18 +1,23 @@
 import React, { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getOrders, getTables, getMenuItems, getCategories } from "../../https";
-import { isSameDay, getDateDaysAgo, percentChange } from "../../utils";
+import { getTables, getMenuItems, getCategories } from "../../https";
+import { useAllOrders } from "../../hooks/useOrders";
+import { percentChange } from "../../utils";
+import { BsCashCoin } from "react-icons/bs";
+import { MdOutlineReceiptLong, MdOutlineShowChart, MdCategory, MdTableBar, MdOutlinePendingActions } from "react-icons/md";
+import { BiSolidDish } from "react-icons/bi";
+import { FiUsers } from "react-icons/fi";
+import MiniCard from "../home/MiniCard";
 
 const Metrics = () => {
-  const { data: ordersRes } = useQuery({ queryKey: ["orders"], queryFn: () => getOrders() });
+  const { orders } = useAllOrders();
   const { data: tablesRes } = useQuery({ queryKey: ["tables"], queryFn: () => getTables() });
   const { data: itemsRes } = useQuery({ queryKey: ["menu-items"], queryFn: () => getMenuItems() });
   const { data: catsRes } = useQuery({ queryKey: ["categories"], queryFn: () => getCategories() });
 
-  const orders = ordersRes?.data?.data || [];
-  const tables = tablesRes?.data?.data || [];
-  const menuItems = itemsRes?.data?.data || [];
-  const categories = catsRes?.data?.data || [];
+  const tables = useMemo(() => tablesRes?.data?.data || [], [tablesRes]);
+  const menuItems = useMemo(() => itemsRes?.data?.data || [], [itemsRes]);
+  const categories = useMemo(() => catsRes?.data?.data || [], [catsRes]);
 
   const { performanceMetrics, itemMetrics } = useMemo(() => {
     const now = new Date();
@@ -48,123 +53,55 @@ const Metrics = () => {
       : 0;
 
     const performanceMetrics = [
-      {
-        title: "Revenue (this month)",
-        value: `৳${revenueThisMonth.toFixed(0)}`,
-        percentage: revenueTrend !== null ? `${Math.abs(revenueTrend).toFixed(1)}%` : "—",
-        color: "#025cca",
-        isIncrease: revenueTrend === null || revenueTrend >= 0,
-      },
-      {
-        title: "Orders (this month)",
-        value: `${ordersThisMonth}`,
-        percentage: ordersTrend !== null ? `${Math.abs(ordersTrend).toFixed(1)}%` : "—",
-        color: "#02ca3a",
-        isIncrease: ordersTrend === null || ordersTrend >= 0,
-      },
-      {
-        title: "Unique Customers",
-        value: `${uniqueCustomers.size}`,
-        percentage: `${orders.length} orders total`,
-        color: "#f6b100",
-        isIncrease: true,
-      },
-      {
-        title: "Avg Order Value",
-        value: `৳${avgOrderValue.toFixed(0)}`,
-        percentage: `৳${totalRevenueAllTime.toFixed(0)} all-time`,
-        color: "#be3e3f",
-        isIncrease: true,
-      },
+      { title: "Revenue (this month)", icon: <BsCashCoin />, number: revenueThisMonth, prefix: "৳", trendPercent: revenueTrend, trendLabel: "vs last month", accent: "green" },
+      { title: "Orders (this month)", icon: <MdOutlineReceiptLong />, number: ordersThisMonth, trendPercent: ordersTrend, trendLabel: "vs last month", accent: "gold" },
+      { title: "Unique customers", icon: <FiUsers />, number: uniqueCustomers.size, trendLabel: `${orders.length} orders total`, accent: "blue" },
+      { title: "Avg order value", icon: <MdOutlineShowChart />, number: avgOrderValue, prefix: "৳", trendLabel: `৳${totalRevenueAllTime.toFixed(0)} all-time`, accent: "rose" },
     ];
 
-    const totalDishes = menuItems.length;
-    const totalCategories = categories.length;
     const activeOrders = orders.filter((o) => o.orderStatus !== "completed").length;
-
     const itemMetrics = [
-      { title: "Total Categories", value: `${totalCategories}`, color: "#5b45b0" },
-      { title: "Total Dishes", value: `${totalDishes}`, color: "#285430" },
-      { title: "Active Orders", value: `${activeOrders}`, color: "#735f32" },
-      { title: "Total Tables", value: `${tables.length}`, color: "#7f167f" },
+      { title: "Categories", value: categories.length, icon: <MdCategory /> },
+      { title: "Dishes", value: menuItems.length, icon: <BiSolidDish /> },
+      { title: "Active orders", value: activeOrders, icon: <MdOutlinePendingActions /> },
+      { title: "Tables", value: tables.length, icon: <MdTableBar /> },
     ];
 
     return { performanceMetrics, itemMetrics };
   }, [orders, tables, menuItems, categories]);
 
+  const Heading = ({ eyebrow, title, sub }) => (
+    <div className="mb-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">{eyebrow}</p>
+      <h2 className="mt-0.5 font-display text-xl font-bold text-ink">{title}</h2>
+      <p className="mt-1 text-sm text-ink-3">{sub}</p>
+      <div className="gold-rule mt-3" />
+    </div>
+  );
+
   return (
-    <div className="container mx-auto py-2 px-6 md:px-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="font-semibold text-[#f5f5f5] text-xl">
-            Overall Performance
-          </h2>
-          <p className="text-sm text-[#ababab]">
-            Real revenue and order trends, compared against last month.
-          </p>
+    <div className="space-y-8">
+      <section>
+        <Heading eyebrow="Performance" title="Overall performance" sub="Real revenue and order trends, compared against last month." />
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {performanceMetrics.map((m) => <MiniCard key={m.title} {...m} />)}
         </div>
-      </div>
+      </section>
 
-      <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {performanceMetrics.map((metric, index) => {
-          return (
-            <div
-              key={index}
-              className="shadow-sm rounded-lg p-4"
-              style={{ backgroundColor: metric.color }}
-            >
-              <div className="flex justify-between items-center">
-                <p className="font-medium text-xs text-[#f5f5f5]">
-                  {metric.title}
-                </p>
-                <div className="flex items-center gap-1">
-                  <svg
-                    className="w-3 h-3"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                    style={{ color: metric.isIncrease ? "#f5f5f5" : "red" }}
-                  >
-                    <path
-                      d={metric.isIncrease ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"}
-                    />
-                  </svg>
-                  <p
-                    className="font-medium text-xs"
-                    style={{ color: metric.isIncrease ? "#f5f5f5" : "red" }}
-                  >
-                    {metric.percentage}
-                  </p>
-                </div>
+      <section>
+        <Heading eyebrow="Inventory" title="Item details" sub="Live counts pulled directly from your menu and database." />
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {itemMetrics.map((m) => (
+            <div key={m.title} className="glass-card flex items-center gap-4 p-5">
+              <span className="rounded-xl bg-[#F6B100]/15 p-3 text-xl text-accent">{m.icon}</span>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-2">{m.title}</p>
+                <p className="mt-1 font-num text-2xl font-bold text-ink">{m.value}</p>
               </div>
-              <p className="mt-1 font-semibold text-2xl text-[#f5f5f5]">
-                {metric.value}
-              </p>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="flex flex-col justify-between mt-12">
-        <div>
-          <h2 className="font-semibold text-[#f5f5f5] text-xl">
-            Item Details
-          </h2>
-          <p className="text-sm text-[#ababab]">
-            Live counts pulled directly from your menu and database.
-          </p>
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {itemMetrics.map((item, index) => (
-            <div key={index} className="shadow-sm rounded-lg p-4" style={{ backgroundColor: item.color }}>
-              <p className="font-medium text-xs text-[#f5f5f5]">{item.title}</p>
-              <p className="mt-1 font-semibold text-2xl text-[#f5f5f5]">{item.value}</p>
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 };

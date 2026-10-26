@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { FaCheckDouble, FaClock, FaSpinner } from "react-icons/fa";
 import { getAvatarName, getBgColor } from "../../utils";
 
@@ -7,6 +7,12 @@ const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 const isOlderThan24h = (createdAt) =>
   createdAt && Date.now() - new Date(createdAt).getTime() > TWENTY_FOUR_HOURS;
 
+const STATUS = {
+  completed:    { cls: "bg-blue-500/10 text-blue-300 border-blue-500/20",   icon: <FaCheckDouble /> },
+  "in process": { cls: "bg-yellow-500/10 text-yellow-300 border-yellow-500/20", icon: <FaSpinner className="animate-spin" /> },
+};
+const STATUS_FALLBACK = { cls: "bg-orange-500/10 text-orange-300 border-orange-500/20", icon: <FaClock /> };
+
 const OrderList = ({ order }) => {
   if (!order) return null;
   const { customerDetails, orderStatus, items, table, createdAt } = order;
@@ -14,44 +20,31 @@ const OrderList = ({ order }) => {
   const hideCustomer = isOlderThan24h(createdAt);
   const displayName  = hideCustomer ? "Guest" : (customerDetails?.name || "Customer");
   const avatarName   = getAvatarName(displayName);
-
-  const icon =
-    orderStatus === "completed" ? (
-      <FaCheckDouble className="inline mr-1 text-blue-400" />
-    ) : orderStatus === "in process" ? (
-      <FaSpinner className="inline mr-1 text-yellow-400 animate-spin" />
-    ) : (
-      <FaClock className="inline mr-1 text-orange-400" />
-    );
+  const st = STATUS[orderStatus] || STATUS_FALLBACK;
 
   return (
-    <div className="flex items-center gap-3 mb-3">
-      <button
-        className="p-2 text-sm font-semibold rounded-md text-white min-w-[36px]"
-        style={{ backgroundColor: getBgColor() }}
+    <div className="mb-2 flex items-center gap-3 rounded-2xl border border-transparent bg-tint/[0.02] px-3 py-2.5 transition-colors hover:border-tint/5 hover:bg-tint/[0.05]">
+      <span
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white shadow-inner"
+        style={{ backgroundColor: getBgColor(displayName) }}
       >
         {avatarName || "N/A"}
-      </button>
-      <div className="flex items-center justify-between w-full">
-        <div className="flex flex-col items-start gap-1">
-          <h1 className="text-[#f5f5f5] text-sm font-semibold tracking-wide">
-            {displayName}
-          </h1>
-          <p className="text-[#ababab] text-xs">{items?.length || 0} Items</p>
-        </div>
-        <div>
-          <h1 className="text-[#f6b100] text-xs font-semibold border border-[#f6b100] px-1 py-0.5 rounded">
-            Table: {table?.tableNo ?? "N/A"}
-          </h1>
-        </div>
-        <div>
-          <p className="text-[#ababab] text-xs capitalize">
-            {icon} {orderStatus}
-          </p>
-        </div>
+      </span>
+
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate text-sm font-semibold text-ink">{displayName}</h3>
+        <p className="text-xs text-ink-3">{items?.length || 0} item{(items?.length || 0) !== 1 ? "s" : ""}</p>
       </div>
+
+      <span className="shrink-0 rounded-lg border border-[#F6B100]/30 bg-[#F6B100]/10 px-2 py-1 text-[11px] font-semibold text-accent">
+        Table {table?.tableNo ?? "N/A"}
+      </span>
+
+      <span className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize ${st.cls}`}>
+        {st.icon} {orderStatus}
+      </span>
     </div>
   );
 };
 
-export default OrderList;
+export default memo(OrderList);

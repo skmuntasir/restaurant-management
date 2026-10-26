@@ -2,9 +2,36 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <meta name="theme-color" content="#fafaf9" />
+    <meta name="description" content="Restro — restaurant POS: tables, orders, menu and payments in one place." />
+    <title>Restro POS</title>
+
+    <!-- Fonts: loaded as a <link> (not a CSS @import) so they download in
+         parallel with the app instead of blocking it, and only the weights
+         the UI actually uses are requested. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <script>
+      /* Apply the saved theme BEFORE first paint so there is no dark/light flash. */
+      (function () {
+        var t = "light";
+        try { t = localStorage.getItem("restro-theme") === "dark" ? "dark" : "light"; } catch (e) {}
+        document.documentElement.setAttribute("data-theme", t);
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (m) m.setAttribute("content", t === "light" ? "#fafaf9" : "#18191b");
+      })();
+    </script>
+    <style>
+      /* Paint the themed background immediately — no flash while JS loads */
+      html, body { margin: 0; background: #f4f4f2; }
+      html[data-theme="dark"], html[data-theme="dark"] body { background: #1e1f22; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

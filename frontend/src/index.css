@@ -1,20 +1,120 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+/* Inter is loaded from index.html via <link> (non-blocking). */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Prevent white overscroll flash on all platforms */
-html, body {
-  background-color: #1f1f1f;
-  overscroll-behavior: none;
-  height: 100%;
-  font-family: 'Inter', sans-serif;
+
+/* ─────────────────────────────────────────────────────────────
+   Theme tokens (RGB triplets so Tailwind's /opacity modifiers work).
+   Dark is the default; light is switched on with <html data-theme="light">.
+   Any subtree can be pinned to a theme with data-theme="dark|light"
+   (used for the photo hero and the login screen, which stay dark).
+   ───────────────────────────────────────────────────────────── */
+/* Calm, flat palette: neutral greys + ONE gold accent (used for the main action
+   and the selected state only). No gradients, glows or glass. */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --c-page: 24 25 27;          /* app background            #18191b */
+  --c-canvas: 30 31 34;        /* body / loaders / wells    #1e1f22 */
+  --c-surface: 34 35 38;       /* popovers, table heads     #222326 */
+  --c-surface-2: 40 41 45;     /* dashboard modals          #28292d */
+  --c-ink: 236 237 239;        /* primary text (soft white) */
+  --c-ink-2: 168 171 178;      /* secondary text */
+  --c-ink-3: 140 144 152;      /* muted text */
+  --c-ink-4: 108 112 120;      /* placeholders / faint */
+  --c-tint: 255 255 255;       /* hairlines & soft fills (white on dark) */
+  --c-shade: 0 0 0;            /* inset wells */
+  --c-accent: 246 177 0;       /* gold used for TEXT */
+  --c-accent-soft: 255 205 80;
+  --glass-bg: rgb(36 37 41);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-shadow: none;
+  --gold-text: rgb(246 177 0);
+  --ambient-a: transparent;
+  --ambient-b: transparent;
+  --scroll-thumb: #3a3b3f;
+  --scroll-thumb-hover: #4a4b50;
 }
 
+[data-theme="light"] {
+  color-scheme: light;
+  --c-page: 250 250 249;       /* clean warm white  #fafaf9 */
+  --c-canvas: 244 244 242;     /* #f4f4f2 */
+  --c-surface: 255 255 255;
+  --c-surface-2: 255 255 255;
+  --c-ink: 28 30 34;           /* #1c1e22 */
+  --c-ink-2: 78 84 94;
+  --c-ink-3: 108 114 124;
+  --c-ink-4: 150 155 163;
+  --c-tint: 15 23 42;          /* cool slate hairlines on light */
+  --c-shade: 120 128 140;
+  --c-accent: 146 96 0;        /* darker gold = readable text on white */
+  --c-accent-soft: 160 105 0;
+  --glass-bg: #ffffff;
+  --glass-border: rgba(15, 23, 42, 0.08);
+  --glass-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --gold-text: rgb(146 96 0);
+  --ambient-a: transparent;
+  --ambient-b: transparent;
+  --scroll-thumb: #d3d3cf;
+  --scroll-thumb-hover: #bcbcb6;
+}
+
+/* Prevent white overscroll flash on all platforms */
+html, body {
+  background-color: rgb(var(--c-canvas));
+  color: rgb(var(--c-ink));
+  overscroll-behavior: none;
+  height: 100%;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeSpeed;
+}
+
+/* Smooth, native-feeling scrolling everywhere (reduced-motion users are
+   switched back to instant scrolling by the media query further down). */
+html { scroll-behavior: smooth; }
+.overflow-y-auto, .overflow-auto, .scrollbar-thin {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Numbers: one simple, clean sans-serif — lining figures, equal widths.
+   Replaces the old-style serif digits of the display font. */
+.font-num {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -0.01em;
+}
+/* Headings use Inter too (one typeface everywhere) */
+.font-display { font-variant-numeric: lining-nums; letter-spacing: -0.01em; }
+
 #root {
-  background-color: #1f1f1f;
+  background-color: rgb(var(--c-canvas));
   min-height: 100%;
+}
+
+/* Visible keyboard focus everywhere (mouse users don't see it) */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+[role="tab"]:focus-visible,
+[role="radio"]:focus-visible {
+  outline: 2px solid #F6B100;
+  outline-offset: 2px;
+}
+
+/* Respect the OS "reduce motion" setting */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* FullScreenLoader.css */
@@ -25,7 +125,7 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: #1f1f1f; /* White background with some transparency */
+  background-color: rgb(var(--c-canvas));
   display: flex;
   justify-content: center;
   align-items: center;
@@ -33,8 +133,8 @@ html, body {
 }
 
 .spinner {
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid #f6b100; /* Blue color for spinner */
+  border: 4px solid rgb(var(--c-tint) / 0.25);
+  border-top: 4px solid #f6b100;
   border-radius: 50%;
   width: 50px;
   height: 50px;
@@ -48,8 +148,9 @@ html, body {
 
 /* Slim, visible scrollbar for scrollable panels (Recent Orders, etc.) */
 .scrollbar-thin {
+  scrollbar-gutter: stable; /* reserve the scrollbar lane so content never shifts sideways */
   scrollbar-width: thin;
-  scrollbar-color: #3a3a3a transparent;
+  scrollbar-color: var(--scroll-thumb) transparent;
 }
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
@@ -58,85 +159,180 @@ html, body {
   background: transparent;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: #3a3a3a;
+  background-color: var(--scroll-thumb);
   border-radius: 999px;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background-color: #4a4a4a;
+  background-color: var(--scroll-thumb-hover);
 }
 
-/* ─── Receipt: hidden on screen, shown only when printing ─── */
-.print-receipt-body {
+/* ─── Receipt: lives in <body> outside the app, hidden on screen, shown only when printing ─── */
+.print-receipt-root {
   display: none;
 }
 
 @media print {
-  /* 1. Hide the entire page */
-  body * {
-    visibility: hidden !important;
-    overflow: visible !important;
-  }
+  @page { margin: 6mm; }
 
-  /* 2. Show ONLY the receipt */
-  .print-receipt-body {
-    display: block !important;
-    visibility: visible !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    padding: 24px !important;
+  /* Hide the whole app (and any modal / toast portals); show only the receipt */
+  body > *:not(.print-receipt-root) { display: none !important; }
+  html, body {
     background: #fff !important;
     color: #000 !important;
-    z-index: 99999 !important;
+    height: auto !important;
+    overflow: visible !important;
   }
-  .print-receipt-body * {
-    visibility: visible !important;
-    color: #000 !important;
-  }
+  .print-receipt-root { display: block !important; }
 
-  .receipt-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    border-bottom: 2px solid #000;
-    padding-bottom: 6px;
-  }
-  .receipt-meta {
-    font-size: 11px;
-    color: #444;
-    margin-bottom: 12px;
-  }
-  .receipt-table {
-    width: 100%;
-    border-collapse: collapse;
+  .rcpt {
+    width: 80mm;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 2mm 0;
+    color: #000;
+    background: #fff;
+    font-family: "Courier New", ui-monospace, Menlo, Consolas, monospace;
     font-size: 12px;
-    margin-bottom: 12px;
+    line-height: 1.45;
   }
-  .receipt-table th,
-  .receipt-table td {
-    border-bottom: 1px solid #ccc;
-    padding: 5px 4px;
-    text-align: left;
-  }
-  .receipt-table th {
-    font-weight: 700;
-    background: #f5f5f5;
-  }
-  .receipt-totals {
-    border-top: 1px solid #000;
-    padding-top: 8px;
-    margin-top: 8px;
-  }
-  .receipt-totals p {
-    font-size: 12px;
-    margin: 3px 0;
-  }
-  .receipt-grand-total {
-    font-weight: 700;
-    font-size: 15px;
-    border-top: 2px solid #000;
-    padding-top: 5px;
-    margin-top: 5px;
-  }
+  .rcpt-center { text-align: center; }
+  .rcpt-strong { font-weight: 700; }
+  .rcpt-muted { color: #444; }
+  .rcpt-brand { font-size: 22px; font-weight: 700; letter-spacing: 0.3em; margin-bottom: 2px; }
+  .rcpt-row { display: flex; justify-content: space-between; gap: 8px; }
+  .rcpt-row > span:last-child { text-align: right; white-space: nowrap; }
+  .rcpt-line { border: 0; border-top: 1px dashed #000; margin: 6px 0; }
+  .rcpt-thin { border-top-style: dotted; margin: 3px 0 5px; }
+  .rcpt-double { border-top: 3px double #000; }
+  .rcpt-item { margin-bottom: 5px; break-inside: avoid; }
+  .rcpt-item-name { font-weight: 700; }
+  .rcpt-total { font-size: 16px; font-weight: 700; }
+  .rcpt-paid { margin-top: 6px; letter-spacing: 0.2em; }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Login / Sign-up — "kitchen ticket" design
+   ───────────────────────────────────────────────────────────── */
+
+/* Scalloped top & bottom edge, like a torn order ticket */
+.ticket-edge {
+  --r: 7px;
+  -webkit-mask:
+    radial-gradient(circle var(--r) at 50% 0, #0000 98%, #000) top / 22px 51% repeat-x,
+    radial-gradient(circle var(--r) at 50% 100%, #0000 98%, #000) bottom / 22px 51% repeat-x;
+  mask:
+    radial-gradient(circle var(--r) at 50% 0, #0000 98%, #000) top / 22px 51% repeat-x,
+    radial-gradient(circle var(--r) at 50% 100%, #0000 98%, #000) bottom / 22px 51% repeat-x;
+}
+
+/* Warm light that follows the cursor across the auth screen */
+.auth-spotlight {
+  background: none;
+}
+
+/* Subtle paper grain on the ticket */
+.ticket-paper {
+  background-image: none;
+}
+
+/* Floating-label inputs: label sits inside, lifts when focused or filled */
+.field-label {
+  transform: translateY(-50%);
+  transform-origin: left center;
+}
+.field-input:focus ~ .field-label,
+.field-input:not(:placeholder-shown) ~ .field-label,
+.field-input:-webkit-autofill ~ .field-label {
+  transform: translateY(calc(-50% - 0.85rem)) scale(0.78);
+  color: #F6B100;
+}
+/* Browser autofill paints inputs bright yellow/white — keep them on-theme */
+.field-input:-webkit-autofill,
+.field-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+  caret-color: #ffffff;
+  box-shadow: 0 0 0 1000px #14120f inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* The field wrapper already shows a focus ring — suppress the global one on the raw input */
+.field-input:focus-visible {
+  outline: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Premium surfaces (Home checkpoint) — shared building blocks
+   ───────────────────────────────────────────────────────────── */
+
+/* Plain page background (the old coloured haze was removed) */
+.page-ambient {
+  background: rgb(var(--c-page));
+}
+
+/* Flat card: solid colour, one thin border, barely-there shadow */
+.glass-card {
+  position: relative;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: var(--glass-shadow);
+}
+
+/* Key figures / headings: solid accent colour (was a gold gradient) */
+.text-gold {
+  color: var(--gold-text);
+}
+
+/* Section rule: a plain hairline */
+.gold-rule {
+  height: 1px;
+  background: rgb(var(--c-tint) / 0.1);
+}
+
+/* No sweeping sheen */
+.hero-sheen::after { display: none; }
+
+/* ─── Quiet UI: no blur, pulsing or pinging effects anywhere ─── */
+.backdrop-blur, .backdrop-blur-sm, .backdrop-blur-md {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.animate-ping { display: none !important; }
+.animate-pulse { animation: none !important; }
+
+/* ─────────────────────────────────────────────────────────────
+   Light-mode adjustments for Tailwind's status colours.
+   The "-300 / -400" shades were picked for dark backgrounds and are too
+   pale on white, so they are darkened here. Subtrees pinned to dark
+   (hero, login) are left alone.
+   ───────────────────────────────────────────────────────────── */
+html[data-theme="light"] .text-orange-300:not([data-theme="dark"] *)  { color: #c2410c; }
+html[data-theme="light"] .text-yellow-300:not([data-theme="dark"] *),
+html[data-theme="light"] .text-yellow-400:not([data-theme="dark"] *),
+html[data-theme="light"] .text-yellow-500:not([data-theme="dark"] *)  { color: #946200; }
+html[data-theme="light"] .text-blue-300:not([data-theme="dark"] *)    { color: #1d4ed8; }
+html[data-theme="light"] .text-green-400:not([data-theme="dark"] *)   { color: #15803d; }
+html[data-theme="light"] .text-emerald-300:not([data-theme="dark"] *),
+html[data-theme="light"] .text-emerald-400:not([data-theme="dark"] *) { color: #047857; }
+html[data-theme="light"] .text-red-300:not([data-theme="dark"] *),
+html[data-theme="light"] .text-red-400:not([data-theme="dark"] *)     { color: #b91c1c; }
+html[data-theme="light"] .text-amber-300:not([data-theme="dark"] *)   { color: #b45309; }
+html[data-theme="light"] .hover\:text-red-400:hover:not([data-theme="dark"] *),
+html[data-theme="light"] .hover\:text-red-300:hover:not([data-theme="dark"] *) { color: #b91c1c; }
+
+/* Native <select> popups follow the theme */
+select, option { color-scheme: inherit; }
+
+/* Smooth theme switch (skipped for users who prefer reduced motion — see above) */
+html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
+  transition: background-color .25s ease, border-color .25s ease, color .25s ease, fill .25s ease !important;
+}
+html[data-theme="light"] .text-blue-400:not([data-theme="dark"] *),
+html[data-theme="light"] .text-purple-400:not([data-theme="dark"] *) { color: #5b3fc4; }
+html[data-theme="light"] .text-blue-400:not([data-theme="dark"] *)   { color: #1d4ed8; }
+html[data-theme="light"] .text-\[\#02ca3a\]:not([data-theme="dark"] *) { color: #15803d; }
+html[data-theme="light"] .text-\[\#60a5fa\]:not([data-theme="dark"] *) { color: #1d4ed8; }
+html[data-theme="light"] .text-\[\#fb7185\]:not([data-theme="dark"] *) { color: #be123c; }
+
+/* The logo artwork is white — darken it on the light header so it stays visible */
+html[data-theme="light"] .logo-adaptive:not([data-theme="dark"] *) { filter: invert(1) brightness(0.3); }

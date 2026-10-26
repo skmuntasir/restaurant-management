@@ -1,5 +1,5 @@
 const express = require("express");
-const { addTable, getTables, updateTable, mergeTables, releaseMergedTable } = require("../controllers/tableController");
+const { addTable, getTables, updateTable, deleteTable, mergeTables, releaseMergedTable } = require("../controllers/tableController");
 const { isVerifiedUser } = require("../middlewares/tokenVerification");
 const requireRole = require("../middlewares/requireRole");
 const router = express.Router();
@@ -13,6 +13,7 @@ router.route("/").post(isVerifiedUser, requireRole(["admin"]), addTable).get(isV
 router.route("/merge").post(isVerifiedUser, requireRole(["admin"]), mergeTables);
 router.route("/:id/release-merge").post(isVerifiedUser, requireRole(["admin"]), releaseMergedTable);
 
-router.route("/:id").put(isVerifiedUser, requireRole(["admin"]), updateTable);
+router.route("/:id").put(isVerifiedUser, requireRole(["admin"]), updateTable)
+  .delete(isVerifiedUser, requireRole(["admin"]), deleteTable);
 
 module.exports = router;

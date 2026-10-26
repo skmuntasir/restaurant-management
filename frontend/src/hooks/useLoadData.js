@@ -2,59 +2,51 @@ import { useDispatch } from "react-redux";
 import { getUserData, logout as logoutApi } from "../https";
 import { useEffect, useState } from "react";
 import { removeUser, setUser } from "../redux/slices/userSlice";
-import { useNavigate } from "react-router-dom";
+import { SESSION_KEY, hasActiveSession, clearSession, setBootLogout } from "../utils/session";
+
+// Re-exported so existing imports of SESSION_KEY from this file keep working.
+export { SESSION_KEY };
 
 /**
- * SESSION_KEY is stored in sessionStorage, which is:
- *   - Persisted across page REFRESHES within the same tab  ✓
- *   - Cleared when the TAB is closed                       ✓
- *   - Cleared when the BROWSER WINDOW is closed            ✓
- *   - NOT shared between tabs (each tab is independent)    ✓
+ * Restores the session on page load.
  *
- * Flow:
- *   Login → set SESSION_KEY → app works as normal
- *   Close tab / close browser → SESSION_KEY gone
- *   Re-open app → SESSION_KEY missing → backend cookie cleared → login screen shown
+ *  - Fresh visit (no session key): nothing to verify, so we DON'T block the
+ *    screen. The login page paints immediately; a stale cookie (if any) is
+ *    cleared in the background. Previously the whole app sat behind a
+ *    full-screen spinner until the server answered — painful when the free
+ *    host is waking up.
+ *  - Returning tab (session key present): verify it with the server, showing
+ *    the loader only for that short check.
  */
-export const SESSION_KEY = "restro_session_active";
-
 const useLoadData = () => {
     const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(() => hasActiveSession());
 
     useEffect(() => {
-        const fetchUser = async () => {
-            const hasSession = sessionStorage.getItem(SESSION_KEY);
+        if (!hasActiveSession()) {
+            dispatch(removeUser());
+            setBootLogout(logoutApi());
+            return;
+        }
 
-            if (!hasSession) {
-                // Tab was closed and reopened (or first visit).
-                // Proactively clear the httpOnly cookie on the backend so no
-                // stale session is reused even if the cookie somehow persisted.
-                try { await logoutApi(); } catch { /* ignore */ }
-                dispatch(removeUser());
-                navigate("/auth");
-                setIsLoading(false);
-                return;
-            }
-
-            // Session key present — verify it's still valid with the backend.
+        let cancelled = false;
+        (async () => {
             try {
                 const { data } = await getUserData();
                 const { _id, name, email, phone, role } = data.data;
-                dispatch(setUser({ _id, name, email, phone, role }));
-            } catch (error) {
-                // Token expired or cookie gone — clean up and send to login.
-                sessionStorage.removeItem(SESSION_KEY);
-                dispatch(removeUser());
-                navigate("/auth");
+                if (!cancelled) dispatch(setUser({ _id, name, email, phone, role }));
+            } catch {
+                // Token expired or cookie gone — clean up; the router sends
+                // the user to the login page.
+                clearSession();
+                if (!cancelled) dispatch(removeUser());
             } finally {
-                setIsLoading(false);
+                if (!cancelled) setIsLoading(false);
             }
-        };
+        })();
 
-        fetchUser();
-    }, [dispatch, navigate]);
+        return () => { cancelled = true; };
+    }, [dispatch]);
 
     return isLoading;
 };

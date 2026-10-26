@@ -2,14 +2,22 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { IoMdClose } from "react-icons/io";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addMenuItem, getCategories } from "../../https";
+import { addMenuItem, updateMenuItem, getCategories } from "../../https";
 import { enqueueSnackbar } from "notistack";
+import useEscapeKey from "../../hooks/useEscapeKey";
 
 const TYPES = ["Vegetarian", "Non-Vegetarian", "Hot", "Cold", "Mocktail"];
 
-const AddDishModal = ({ onClose }) => {
+const AddDishModal = ({ onClose, item }) => {
+  const isEdit = Boolean(item);
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ name: "", price: "", category: "", type: "Vegetarian" });
+  useEscapeKey(onClose);
+  const [form, setForm] = useState({
+    name: item?.name ?? "",
+    price: item?.price ?? "",
+    category: item?.category?._id ?? item?.category ?? "",
+    type: item?.type ?? "Vegetarian",
+  });
 
   const { data: categoriesRes } = useQuery({
     queryKey: ["categories"],
@@ -18,7 +26,7 @@ const AddDishModal = ({ onClose }) => {
   const categories = categoriesRes?.data?.data || [];
 
   const mutation = useMutation({
-    mutationFn: (data) => addMenuItem(data),
+    mutationFn: (data) => (isEdit ? updateMenuItem(item._id, data) : addMenuItem(data)),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["menu-items"] });
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -26,7 +34,7 @@ const AddDishModal = ({ onClose }) => {
       onClose();
     },
     onError: (err) => {
-      enqueueSnackbar(err?.response?.data?.message || "Failed to add dish!", { variant: "error" });
+      enqueueSnackbar(err?.response?.data?.message || (isEdit ? "Failed to update dish!" : "Failed to add dish!"), { variant: "error" });
     },
   });
 
@@ -52,54 +60,54 @@ const AddDishModal = ({ onClose }) => {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-[#262626] p-6 rounded-xl shadow-xl w-full max-w-md"
+        className="bg-surface-2 p-6 rounded-xl shadow-xl w-full max-w-md"
       >
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-[#f5f5f5] text-lg font-bold">Add Dish</h2>
-          <button onClick={onClose} className="text-[#ababab] hover:text-red-400">
+          <h2 className="text-ink text-lg font-bold">{isEdit ? "Edit Dish" : "Add Dish"}</h2>
+          <button onClick={onClose} className="text-ink-2 hover:text-red-400">
             <IoMdClose size={22} />
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-[#ababab] mb-1.5 text-sm font-medium">Dish Name</label>
-            <div className="flex items-center rounded-lg p-3 px-4 bg-[#1f1f1f]">
+            <label className="block text-ink-2 mb-1.5 text-sm font-medium">Dish Name</label>
+            <div className="flex items-center rounded-lg p-3 px-4 bg-canvas">
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                 placeholder="e.g. Dal Tadka"
-                className="bg-transparent flex-1 text-white focus:outline-none"
+                className="bg-transparent flex-1 text-ink focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[#ababab] mb-1.5 text-sm font-medium">Price (৳)</label>
-            <div className="flex items-center rounded-lg p-3 px-4 bg-[#1f1f1f]">
+            <label className="block text-ink-2 mb-1.5 text-sm font-medium">Price (৳)</label>
+            <div className="flex items-center rounded-lg p-3 px-4 bg-canvas">
               <input
                 type="number"
                 min={0}
                 value={form.price}
                 onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
                 placeholder="e.g. 150"
-                className="bg-transparent flex-1 text-white focus:outline-none"
+                className="bg-transparent flex-1 text-ink focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[#ababab] mb-1.5 text-sm font-medium">Category</label>
-            <div className="flex items-center rounded-lg p-3 px-4 bg-[#1f1f1f]">
+            <label className="block text-ink-2 mb-1.5 text-sm font-medium">Category</label>
+            <div className="flex items-center rounded-lg p-3 px-4 bg-canvas">
               <select
                 value={form.category}
                 onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}
-                className="bg-transparent flex-1 text-white focus:outline-none"
+                className="bg-transparent flex-1 text-ink focus:outline-none"
               >
-                <option value="" className="bg-[#1f1f1f]">Select category…</option>
+                <option value="" className="bg-canvas">Select category…</option>
                 {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id} className="bg-[#1f1f1f]">
+                  <option key={cat._id} value={cat._id} className="bg-canvas">
                     {cat.icon} {cat.name}
                   </option>
                 ))}
@@ -108,7 +116,7 @@ const AddDishModal = ({ onClose }) => {
           </div>
 
           <div>
-            <label className="block text-[#ababab] mb-1.5 text-sm font-medium">Type</label>
+            <label className="block text-ink-2 mb-1.5 text-sm font-medium">Type</label>
             <div className="flex flex-wrap gap-2">
               {TYPES.map((t) => (
                 <button
@@ -118,7 +126,7 @@ const AddDishModal = ({ onClose }) => {
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border ${
                     form.type === t
                       ? "bg-[#F6B100] text-gray-900 border-[#F6B100]"
-                      : "bg-[#1f1f1f] text-[#ababab] border-[#333]"
+                      : "bg-canvas text-ink-2 border-tint/20"
                   }`}
                 >
                   {t}
@@ -133,7 +141,7 @@ const AddDishModal = ({ onClose }) => {
           disabled={mutation.isPending}
           className="w-full mt-6 bg-[#F6B100] hover:bg-yellow-500 text-gray-900 font-bold rounded-xl py-3 transition-colors disabled:opacity-50"
         >
-          {mutation.isPending ? "Adding…" : "Add Dish"}
+          {mutation.isPending ? (isEdit ? "Saving…" : "Adding…") : (isEdit ? "Save Changes" : "Add Dish")}
         </button>
       </motion.div>
     </div>

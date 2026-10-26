@@ -1,175 +1,150 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FaHome } from 'react-icons/fa';
-import { MdOutlineReorder, MdTableBar } from 'react-icons/md';
-import { CiCircleMore } from 'react-icons/ci';
-import { BiSolidDish } from 'react-icons/bi';
-import { FaUserCircle, FaLightbulb } from 'react-icons/fa';
+import { MdOutlineReorder, MdTableBar, MdMenuBook, MdPersonOutline } from 'react-icons/md';
+import { IoMdClose } from 'react-icons/io';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Modal from './Modal';
-import { useDispatch } from 'react-redux';
-import { setCustomer, SEATS_PER_TABLE_CONST } from '../../redux/slices/customerSlice';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
 import { enqueueSnackbar } from 'notistack';
+import { removeCustomer, selectDraftReady } from '../../redux/slices/customerSlice';
+import { removeAllItems, getCartItems } from '../../redux/slices/cartSlice';
+import Modal from './Modal';
 
+const NavTab = ({ active, onClick, icon: Icon, label }) => (
+  <button
+    onClick={onClick}
+    aria-current={active ? "page" : undefined}
+    className={`relative flex h-full flex-1 items-center justify-center gap-1.5 text-xs font-bold transition-colors ${
+      active ? "text-accent" : "text-ink-3 hover:text-ink"
+    }`}
+  >
+    {active && (
+      <motion.span
+        layoutId="bottom-nav-pill"
+        className="absolute inset-x-2 inset-y-1.5 -z-0 rounded-full border border-[#F6B100]/25 bg-[#F6B100]/15"
+        transition={{ type: "spring", stiffness: 420, damping: 34 }}
+      />
+    )}
+    <Icon className="relative" size={18} />
+    <span className="relative hidden sm:inline">{label}</span>
+  </button>
+);
+
+/**
+ * Bottom navigation: Home · Menu · Tables (centre) · Orders · Profile.
+ *
+ * Tables is where everything starts — the old "new order" popup and the
+ * duplicate More menu (Profile lives in the header) are gone. If an order is
+ * in progress and you wander off, a "Resume order" chip keeps it one tap away
+ * instead of letting a new order silently wipe the cart.
+ */
 const BottomNav = () => {
-  const navigate   = useNavigate();
-  const location   = useLocation();
-  const dispatch   = useDispatch();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isMoreOpen,  setIsMoreOpen]  = useState(false);
-  const [guestCount,  setGuestCount]  = useState(1);
-  const [name,  setName]  = useState("");
-  const [phone, setPhone] = useState("");
-  const moreRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const customer = useSelector((s) => s.customer);
+  const cartCount = useSelector(getCartItems).length;
+  const draftReady = useSelector(selectDraftReady);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const tablesNeeded = Math.ceil(guestCount / SEATS_PER_TABLE_CONST) || 1;
+  const isActive = (path) => location.pathname === path;
+  // /menu is the order builder while an order is in progress, otherwise the read-only menu.
+  const onFlowPage = isActive("/tables") || (isActive("/menu") && draftReady);
+  const showResume = customer.active && !onFlowPage;
 
-  useEffect(() => {
-    const handler = (e) => {
-      if (moreRef.current && !moreRef.current.contains(e.target)) setIsMoreOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  const resumeLabel = customer.appendOrderId
+    ? `Adding to Table ${customer.tableNo}`
+    : customer.tableNo ? `Order · Table ${customer.tableNo}` : "Order in progress";
 
-  const increment = () => setGuestCount((p) => p + 1);
-  const decrement = () => setGuestCount((p) => Math.max(1, p - 1));
-  const isActive  = (path) => location.pathname === path;
+  // Orders with dishes ask first (in-app dialog); an empty draft is dropped straight away.
+  const requestDiscard = () => {
+    if (cartCount > 0) setConfirmOpen(true);
+    else discard();
+  };
 
-  const handleCreateOrder = () => {
-    if (!name?.trim()) {
-      enqueueSnackbar("Please enter the customer's name.", { variant: "warning" });
-      return;
-    }
-    if (!/^01\d{9}$/.test(phone || "")) {
-      enqueueSnackbar("Phone must be a valid 11-digit Bangladeshi number (e.g. 01712345678).", { variant: "warning" });
-      return;
-    }
-    if (guestCount < 1) {
-      enqueueSnackbar("There must be at least 1 guest.", { variant: "warning" });
-      return;
-    }
-    dispatch(setCustomer({ name, phone, guests: guestCount }));
-    setIsModalOpen(false);
-    setName(""); setPhone(""); setGuestCount(1);
-    navigate("/tables");
+  const discard = () => {
+    setConfirmOpen(false);
+    dispatch(removeAllItems());
+    dispatch(removeCustomer());
+    enqueueSnackbar("Order discarded.", { variant: "info" });
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-[#262626] p-2 h-12 flex justify-around">
-      <button
-        onClick={() => navigate("/")}
-        className={`flex items-center justify-center font-bold ${isActive("/") ? "text-[#f5f5f5] bg-[#343434]" : "text-[#ababab]"} w-[30px] rounded-[20px]`}
-      >
-        <FaHome className="inline mr-1" size={18} />
-        <p className="text-xs">Home</p>
-      </button>
+    <nav className="fixed bottom-0 left-0 right-0 z-30 flex h-14 items-stretch border-t border-tint/5 bg-page/95 px-2" aria-label="Main">
+      <NavTab active={isActive("/")} onClick={() => navigate("/")} icon={FaHome} label="Home" />
+      <NavTab active={isActive("/menu") && !draftReady} onClick={() => navigate("/menu")} icon={MdMenuBook} label="Menu" />
 
-      <button
-        onClick={() => navigate("/orders")}
-        className={`flex items-center justify-center font-bold ${isActive("/orders") ? "text-[#f5f5f5] bg-[#343434]" : "text-[#ababab]"} w-[30px] rounded-[20px]`}
-      >
-        <MdOutlineReorder className="inline mr-1" size={18} />
-        <p className="text-xs">Orders</p>
-      </button>
+      {/* Space for the floating Tables button */}
+      <div className="w-20 shrink-0" aria-hidden="true" />
 
-      <button
-        onClick={() => navigate("/tables")}
-        className={`flex items-center justify-center font-bold ${isActive("/tables") ? "text-[#f5f5f5] bg-[#343434]" : "text-[#ababab]"} w-[30px] rounded-[20px]`}
-      >
-        <MdTableBar className="inline mr-1" size={18} />
-        <p className="text-xs">Tables</p>
-      </button>
+      <NavTab active={isActive("/orders")} onClick={() => navigate("/orders")} icon={MdOutlineReorder} label="Orders" />
+      <NavTab active={isActive("/profile")} onClick={() => navigate("/profile")} icon={MdPersonOutline} label="Profile" />
 
-      <div ref={moreRef} className="relative">
-        <button
-          onClick={() => setIsMoreOpen((p) => !p)}
-          className={`flex items-center justify-center font-bold ${isMoreOpen || isActive("/profile") || isActive("/suggested") ? "text-[#f5f5f5] bg-[#343434]" : "text-[#ababab]"} w-[80px] sm:w-[100px] p-2 rounded-[20px]`}
+      {/* Tables — the one place every order starts.
+          Centering lives on a plain wrapper, NOT on the motion.button: framer-motion
+          writes its own inline `transform`, which overwrote Tailwind's
+          -translate-x-1/2 and made the button jump/shift. Press feedback only
+          (no hover scale) so the icon never appears to drift. */}
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
+        <motion.button
+          onClick={() => navigate("/tables")}
+          whileTap={{ scale: 0.94 }}
+          title="Tables"
+          aria-label="Tables"
+          aria-current={onFlowPage ? "page" : undefined}
+          className={`block rounded-full bg-[#F6B100] p-3.5 text-[#1a1a1a] ring-4 shadow-glow transition-[filter] hover:brightness-110 ${
+            onFlowPage ? "ring-[#F6B100]/40" : "ring-page"
+          }`}
         >
-          <CiCircleMore className="inline mr-1" size={18} />
-          <p className="text-xs">More</p>
-        </button>
-        {isMoreOpen && (
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-[#1e1e1e] border border-[#333] rounded-xl shadow-2xl w-44 overflow-hidden">
-            <button
-              onClick={() => { setIsMoreOpen(false); navigate("/profile"); }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#f5f5f5] hover:bg-[#2a2a2a] transition-colors"
-            >
-              <FaUserCircle className="text-[#F6B100]" /> Profile
-            </button>
-            <button
-              onClick={() => { setIsMoreOpen(false); navigate("/suggested"); }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#f5f5f5] hover:bg-[#2a2a2a] transition-colors border-t border-[#2a2a2a]"
-            >
-              <FaLightbulb className="text-[#F6B100]" /> Suggested for You
-            </button>
-          </div>
-        )}
+          <MdTableBar size={24} className="block" />
+        </motion.button>
       </div>
 
-      {/* Create Order button */}
-      <button
-        disabled={isActive("/tables") || isActive("/menu")}
-        onClick={() => setIsModalOpen(true)}
-        className="absolute bottom-4 bg-[#F6B100] text-[#f5f5f5] rounded-full p-3 items-center disabled:opacity-40"
-      >
-        <BiSolidDish size={24} />
-      </button>
+      <AnimatePresence>
+        {showResume && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 10, x: "-50%" }}
+            className="absolute bottom-[5.25rem] left-1/2 flex items-center overflow-hidden whitespace-nowrap rounded-full border border-[#F6B100]/40 bg-surface text-xs font-semibold shadow-glow"
+          >
+            <button
+              onClick={() => navigate(draftReady ? "/menu" : "/tables")}
+              className="py-2 pl-4 pr-3 text-accent-soft transition-colors hover:bg-tint/5"
+            >
+              Resume · {resumeLabel}{cartCount > 0 && ` · ${cartCount} item${cartCount > 1 ? "s" : ""}`}
+            </button>
+            <button
+              onClick={requestDiscard}
+              aria-label="Discard order"
+              className="border-l border-tint/10 px-3 py-2 text-ink-2 transition-colors hover:bg-tint/5 hover:text-red-400"
+            >
+              <IoMdClose size={14} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Order">
-        <div>
-          <label className="block text-[#ababab] mb-2 text-sm font-medium">Customer Name</label>
-          <div className="flex items-center rounded-lg p-3 px-4 bg-[#1f1f1f]">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              type="text"
-              placeholder="Enter customer name"
-              className="bg-transparent flex-1 text-white focus:outline-none"
-            />
-          </div>
+      <Modal isOpen={confirmOpen} onClose={() => setConfirmOpen(false)} title="Discard order?">
+        <p className="text-sm text-ink-2">
+          This will remove the order in progress and its {cartCount} dish{cartCount !== 1 ? "es" : ""}. This can't be undone.
+        </p>
+        <div className="mt-5 flex gap-3">
+          <button
+            onClick={() => setConfirmOpen(false)}
+            className="flex-1 rounded-full border border-tint/10 bg-tint/5 py-2.5 font-semibold text-ink transition-colors hover:bg-tint/10"
+          >
+            Keep order
+          </button>
+          <button
+            onClick={discard}
+            className="flex-1 rounded-full bg-red-600 py-2.5 font-bold text-white transition-colors hover:bg-red-500"
+          >
+            Discard
+          </button>
         </div>
-        <div>
-          <label className="block text-[#ababab] mb-2 mt-2 text-sm font-medium">Customer Phone</label>
-          <div className="flex items-center rounded-lg p-3 px-4 bg-[#1f1f1f]">
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              type="tel"
-              inputMode="numeric"
-              pattern="01[0-9]{9}"
-              maxLength={11}
-              placeholder="e.g. 01712345678"
-              className="bg-transparent flex-1 text-white focus:outline-none"
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block mb-2 mt-3 text-sm font-medium text-[#ababab]">Guests</label>
-          <div className="flex items-center justify-between bg-[#1f1f1f] px-4 py-3 rounded-lg">
-            <button onClick={decrement} className="text-yellow-500 text-xl font-bold px-2">&minus;</button>
-            <span className="text-white">{guestCount} Person{guestCount !== 1 ? "s" : ""}</span>
-            <button onClick={increment} className="text-yellow-500 text-xl font-bold px-2">&#43;</button>
-          </div>
-        </div>
-
-        {/* Tables needed info */}
-        <div className={`mt-3 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${
-          tablesNeeded > 1 ? "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30" : "bg-green-500/10 text-green-400 border border-green-500/30"
-        }`}>
-          <MdTableBar size={16} />
-          {tablesNeeded === 1
-            ? `1 table needed (up to ${SEATS_PER_TABLE_CONST} guests)`
-            : `${tablesNeeded} tables needed — you'll select them on the next screen`}
-        </div>
-
-        <button
-          onClick={handleCreateOrder}
-          className="w-full bg-[#F6B100] text-[#f5f5f5] rounded-lg py-3 mt-4 hover:bg-yellow-700 font-bold"
-        >
-          {tablesNeeded > 1 ? `Select ${tablesNeeded} Tables →` : "Create Order"}
-        </button>
       </Modal>
-    </div>
+    </nav>
   );
 };
 

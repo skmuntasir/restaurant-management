@@ -8,7 +8,9 @@ const SEATS_MAP = [4, 2, 6, 4, 3, 4, 5, 5, 6, 6, 4, 6, 2, 6, 3];
 const seedTables = async () => {
   try {
     const count = await Table.countDocuments();
-    if (count >= 15) {
+    // Seed only a completely empty DB — otherwise tables an admin deleted
+    // would silently come back on the next server restart.
+    if (count > 0) {
       console.log("✅ Tables already seeded in DB");
       return;
     }
@@ -52,7 +54,8 @@ const getTables = async (req, res, next) => {
   try {
     const tables = await Table.find()
       .sort({ tableNo: 1 })
-      .populate({ path: "currentOrder", select: "customerDetails orderStatus" });
+      .populate({ path: "currentOrder", select: "customerDetails orderStatus items bills payment createdAt" })
+      .lean();
     res.status(200).json({ success: true, data: tables });
   } catch (error) {
     next(error);
@@ -62,10 +65,22 @@ const getTables = async (req, res, next) => {
 const updateTable = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { status, currentOrder } = req.body;
+    const { status, currentOrder, tableNo, seats } = req.body;
     if (!mongoose.Types.ObjectId.isValid(id))
       return next(createHttpError(400, "Invalid table id!"));
     const update = {};
+    if (tableNo !== undefined) {
+      const no = Number(tableNo);
+      if (!Number.isInteger(no) || no < 1) return next(createHttpError(400, "Table number must be a positive whole number!"));
+      const clash = await Table.findOne({ tableNo: no, _id: { $ne: id } });
+      if (clash) return next(createHttpError(400, "Another table already uses this number!"));
+      update.tableNo = no;
+    }
+    if (seats !== undefined) {
+      const s = Number(seats);
+      if (!Number.isInteger(s) || s < 1) return next(createHttpError(400, "Seats must be a positive whole number!"));
+      update.seats = s;
+    }
     if (status !== undefined) update.status = status;
     if (currentOrder !== undefined) update.currentOrder = currentOrder || null;
     const table = await Table.findByIdAndUpdate(id, update, {
@@ -74,6 +89,32 @@ const updateTable = async (req, res, next) => {
     });
     if (!table) return next(createHttpError(404, "Table not found!"));
     res.status(200).json({ success: true, message: "Table updated!", data: table });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Admin-only. A table that is in use (open order, or part of a merge) can't be
+// removed — that would orphan a live order. Past orders keep working: the
+// dashboard already shows "—" when an order's table no longer exists.
+const deleteTable = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) return next(createHttpError(400, "Invalid table id!"));
+
+    const table = await Table.findById(id);
+    if (!table) return next(createHttpError(404, "Table not found!"));
+
+    if (table.status === "booked" || table.currentOrder || table.mergedInto) {
+      return next(createHttpError(400, `Table ${table.tableNo} is currently in use. Finish or cancel its order first.`));
+    }
+    const mergedChild = await Table.exists({ mergedInto: table._id });
+    if (mergedChild) {
+      return next(createHttpError(400, `Other tables are merged into Table ${table.tableNo}. Release them first.`));
+    }
+
+    await Table.findByIdAndDelete(id);
+    res.status(200).json({ success: true, message: `Table ${table.tableNo} deleted!` });
   } catch (error) {
     next(error);
   }
@@ -208,7 +249,9 @@ const mergeTables = async (req, res, next) => {
       data: populatedTarget,
     });
   } catch (error) {
-    await session.abortTransaction();
+    // abortTransaction() throws if the transaction already finished, which
+    // would hide the real error — only abort while one is still open.
+    try { if (session.inTransaction()) await session.abortTransaction(); } catch { /* already finished */ }
     session.endSession();
     next(error);
   }
@@ -249,4 +292,4 @@ const releaseMergedTable = async (req, res, next) => {
   }
 };
 
-module.exports = { seedTables, addTable, getTables, updateTable, mergeTables, releaseMergedTable };
+module.exports = { seedTables, addTable, getTables, updateTable, deleteTable, mergeTables, releaseMergedTable };

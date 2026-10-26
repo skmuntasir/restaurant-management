@@ -20,6 +20,12 @@ const isVerifiedUser = async (req, res, next) => {
             return next(error);
         }
 
+        // A sign-up that is still waiting for (or was refused) admin approval
+        // can never use the API, even with a valid token.
+        if (user.status === "pending" || user.status === "rejected") {
+            return next(createHttpError(401, "Your account is not approved."));
+        }
+
         req.user = user;
         next();
 

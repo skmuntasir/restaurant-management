@@ -17,12 +17,13 @@ const orderItemSchema = new mongoose.Schema(
 const orderSchema = new mongoose.Schema(
   {
     customerDetails: {
-      name: { type: String, required: true },
+      // Name and phone are optional for dine-in — a walk-in party is just "Guest".
+      name: { type: String, trim: true, default: "Guest" },
       phone: {
         type: String,
-        required: true,
+        trim: true,
         validate: {
-          validator: (v) => /^01\d{9}$/.test(v),
+          validator: (v) => !v || /^01\d{9}$/.test(v),
           message: "Phone number must be a valid 11-digit Bangladeshi mobile number (e.g. 01712345678)!"
         }
       },
@@ -32,8 +33,9 @@ const orderSchema = new mongoose.Schema(
       type: String,
       // "merged" marks an order whose table/items were folded into another
       // order via the table-merge feature — kept for audit history rather
-      // than deleted outright.
-      enum: ["pending", "in process", "completed", "merged"],
+      // than deleted outright. "cancelled" is a voided order (reason recorded
+      // below) — it never counts toward sales and frees its table(s).
+      enum: ["pending", "in process", "completed", "merged", "cancelled"],
       default: "pending",
       required: true,
     },
@@ -66,6 +68,11 @@ const orderSchema = new mongoose.Schema(
     // accountability (who placed/served a given order).
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 
+    // Set when an order is voided.
+    cancelReason: { type: String, trim: true, maxlength: 200 },
+    cancelledAt: { type: Date },
+    cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
     payment: {
       isPaid: { type: Boolean, default: false },
       method: { type: String, enum: ["card", "cash", null], default: null },
@@ -76,5 +83,12 @@ const orderSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Indexes for the queries the app actually runs (newest-first lists, date
+// windows, per-table lookups, "still open" filters).
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ orderStatus: 1, createdAt: -1 });
+orderSchema.index({ "payment.paidAt": 1 });
+orderSchema.index({ table: 1 });
 
 module.exports = mongoose.model("Order", orderSchema);

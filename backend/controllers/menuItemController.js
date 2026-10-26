@@ -42,7 +42,7 @@ const getMenuItems = async (req, res, next) => {
       if (!mongoose.Types.ObjectId.isValid(category)) return next(createHttpError(400, "Invalid category id!"));
       filter.category = category;
     }
-    const items = await MenuItem.find(filter).populate("category", "name icon bgColor").sort({ createdAt: 1 });
+    const items = await MenuItem.find(filter).populate("category", "name icon bgColor").sort({ createdAt: 1 }).lean();
     res.status(200).json({ success: true, data: items });
   } catch (error) {
     next(error);

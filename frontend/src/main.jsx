@@ -11,6 +11,9 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime : 30000,
+      // One quick retry covers a blip; the default of 3 with back-off made
+      // every failure feel like a long freeze.
+      retry: 1,
     }
   }
 })
@@ -18,7 +21,13 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
-      <SnackbarProvider autoHideDuration={3000}>
+      {/* Toasts sit top-right so they never cover the bottom navigation / order buttons */}
+      <SnackbarProvider
+        autoHideDuration={2500}
+        maxSnack={3}
+        preventDuplicate
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
         <QueryClientProvider client={queryClient} >
           <App />
         </QueryClientProvider>

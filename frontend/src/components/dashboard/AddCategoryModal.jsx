@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { IoMdClose } from "react-icons/io";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addCategory } from "../../https";
+import { addCategory, updateCategory } from "../../https";
 import { enqueueSnackbar } from "notistack";
+import useEscapeKey from "../../hooks/useEscapeKey";
 
 const BG_COLORS = [
   "#b73e3e", "#5b45b0", "#7f167f", "#735f32",
@@ -12,19 +13,22 @@ const BG_COLORS = [
 
 const ICONS = ["🍲", "🍛", "🍜", "🍹", "🍰", "🥟", "🥤", "🥗", "🍽️", "🥩", "🌮", "🫕"];
 
-const AddCategoryModal = ({ onClose }) => {
+const AddCategoryModal = ({ onClose, item }) => {
+  const isEdit = Boolean(item);
   const queryClient = useQueryClient();
-  const [form, setForm] = useState({ name: "", icon: "🍽️", bgColor: "#5b45b0" });
+  useEscapeKey(onClose);
+  const [form, setForm] = useState({ name: item?.name ?? "", icon: item?.icon ?? "🍽️", bgColor: item?.bgColor ?? "#5b45b0" });
 
   const mutation = useMutation({
-    mutationFn: (data) => addCategory(data),
+    mutationFn: (data) => (isEdit ? updateCategory(item._id, data) : addCategory(data)),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["menu-items"] });
       enqueueSnackbar(res.data.message, { variant: "success" });
       onClose();
     },
     onError: (err) => {
-      enqueueSnackbar(err?.response?.data?.message || "Failed to add category!", { variant: "error" });
+      enqueueSnackbar(err?.response?.data?.message || (isEdit ? "Failed to update category!" : "Failed to add category!"), { variant: "error" });
     },
   });
 
@@ -41,31 +45,31 @@ const AddCategoryModal = ({ onClose }) => {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-[#262626] p-6 rounded-xl shadow-xl w-full max-w-md"
+        className="bg-surface-2 p-6 rounded-xl shadow-xl w-full max-w-md"
       >
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-[#f5f5f5] text-lg font-bold">Add Category</h2>
-          <button onClick={onClose} className="text-[#ababab] hover:text-red-400">
+          <h2 className="text-ink text-lg font-bold">{isEdit ? "Edit Category" : "Add Category"}</h2>
+          <button onClick={onClose} className="text-ink-2 hover:text-red-400">
             <IoMdClose size={22} />
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-[#ababab] mb-1.5 text-sm font-medium">Category Name</label>
-            <div className="flex items-center rounded-lg p-3 px-4 bg-[#1f1f1f]">
+            <label className="block text-ink-2 mb-1.5 text-sm font-medium">Category Name</label>
+            <div className="flex items-center rounded-lg p-3 px-4 bg-canvas">
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                 placeholder="e.g. Sides"
-                className="bg-transparent flex-1 text-white focus:outline-none"
+                className="bg-transparent flex-1 text-ink focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[#ababab] mb-1.5 text-sm font-medium">Icon</label>
+            <label className="block text-ink-2 mb-1.5 text-sm font-medium">Icon</label>
             <div className="flex flex-wrap gap-2">
               {ICONS.map((icon) => (
                 <button
@@ -73,7 +77,7 @@ const AddCategoryModal = ({ onClose }) => {
                   type="button"
                   onClick={() => setForm((p) => ({ ...p, icon }))}
                   className={`text-xl p-2 rounded-lg border-2 transition-colors ${
-                    form.icon === icon ? "border-[#F6B100]" : "border-transparent bg-[#1f1f1f]"
+                    form.icon === icon ? "border-[#F6B100]" : "border-transparent bg-canvas"
                   }`}
                 >
                   {icon}
@@ -83,7 +87,7 @@ const AddCategoryModal = ({ onClose }) => {
           </div>
 
           <div>
-            <label className="block text-[#ababab] mb-1.5 text-sm font-medium">Card Color</label>
+            <label className="block text-ink-2 mb-1.5 text-sm font-medium">Card Color</label>
             <div className="flex flex-wrap gap-2">
               {BG_COLORS.map((color) => (
                 <button
@@ -101,9 +105,9 @@ const AddCategoryModal = ({ onClose }) => {
 
           {/* Preview */}
           <div className="flex items-center gap-3 mt-2">
-            <span className="text-[#ababab] text-xs">Preview:</span>
+            <span className="text-ink-2 text-xs">Preview:</span>
             <div
-              className="px-4 py-2 rounded-xl text-[#f5f5f5] text-sm font-semibold"
+              className="px-4 py-2 rounded-xl text-ink text-sm font-semibold"
               style={{ backgroundColor: form.bgColor }}
             >
               {form.icon} {form.name || "Category Name"}
@@ -116,7 +120,7 @@ const AddCategoryModal = ({ onClose }) => {
           disabled={mutation.isPending}
           className="w-full mt-6 bg-[#F6B100] hover:bg-yellow-500 text-gray-900 font-bold rounded-xl py-3 transition-colors disabled:opacity-50"
         >
-          {mutation.isPending ? "Adding…" : "Add Category"}
+          {mutation.isPending ? (isEdit ? "Saving…" : "Adding…") : (isEdit ? "Save Changes" : "Add Category")}
         </button>
       </motion.div>
     </div>
