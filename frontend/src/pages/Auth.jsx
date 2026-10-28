@@ -57,7 +57,7 @@ const Auth = () => {
     <div
       ref={rootRef}
       onMouseMove={handleMouseMove}
-      data-theme="dark" className="relative min-h-screen w-full overflow-hidden bg-[#0f0d0a] text-white lg:grid lg:grid-cols-[1.1fr_1fr]"
+      data-theme="dark" className="relative min-h-dvh w-full overflow-hidden bg-[#0f0d0a] text-white lg:grid lg:grid-cols-[1.1fr_1fr]"
     >
       {/* ───────── LEFT: hero (desktop) ───────── */}
       <aside className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
@@ -109,7 +109,7 @@ const Auth = () => {
       </aside>
 
       {/* ───────── RIGHT: the ticket ───────── */}
-      <main className="relative flex min-h-screen items-center justify-center px-5 py-10 sm:px-10">
+      <main className="relative flex min-h-dvh items-center justify-center px-4 py-8 sm:px-10 sm:py-10">
         <div className="auth-spotlight pointer-events-none absolute inset-0" />
         <div className="pointer-events-none absolute -bottom-32 -right-24 h-80 w-80 rounded-full bg-[#F6B100]/10 blur-3xl" />
 
@@ -127,9 +127,9 @@ const Auth = () => {
             transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
             className="drop-shadow-[0_30px_50px_rgba(0,0,0,0.55)]"
           >
-            <div className="ticket-edge ticket-paper bg-[#1b1814] px-7 pb-9 pt-10 sm:px-9">
+            <div className="ticket-edge ticket-paper bg-[#1b1814] px-5 pb-9 pt-10 min-[380px]:px-7 sm:px-9">
               {/* Ticket header */}
-              <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.22em] text-[#8a8478]">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 font-mono text-[10px] uppercase tracking-[0.22em] text-[#8a8478]">
                 <span>Staff ticket · #{ticketNo}</span>
                 <span className="flex items-center gap-1.5 normal-case tracking-normal">
                   <span className={`h-1.5 w-1.5 rounded-full ${statusMeta.dot}`} />

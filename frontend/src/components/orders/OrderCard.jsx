@@ -106,7 +106,7 @@ const OrderCard = ({ order }) => {
               onChange={(e) => updateMutation.mutate({ id: _id, status: e.target.value })}
               disabled={updateMutation.isPending}
               aria-label="Change order status"
-              className="cursor-pointer rounded-lg border border-tint/10 bg-surface px-2 py-1 text-xs capitalize text-ink focus:border-[#F6B100]/60 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+              className="cursor-pointer rounded-lg border border-tint/10 bg-surface px-2 py-1.5 text-xs capitalize text-ink focus:border-[#F6B100]/60 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
             >
               {STATUS_OPTIONS.map((st) => (
                 <option key={st} value={st}>{st.charAt(0).toUpperCase() + st.slice(1)}</option>
@@ -138,7 +138,7 @@ const OrderCard = ({ order }) => {
         </div>
 
         {/* Payment row */}
-        <div className="mt-4 flex items-center justify-between gap-2">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
           <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
             payment?.isPaid
               ? "border-green-500/25 bg-green-500/10 text-green-400"
@@ -152,7 +152,7 @@ const OrderCard = ({ order }) => {
                 onClick={() => printReceipt(receiptFromOrder(order))}
                 title={payment?.isPaid ? "Print receipt" : "Print bill"}
                 aria-label={payment?.isPaid ? "Print receipt" : "Print bill"}
-                className="rounded-lg border border-tint/10 bg-tint/5 p-2 text-ink-2 transition-colors hover:border-[#F6B100]/50 hover:text-accent"
+                className="rounded-lg border border-tint/10 bg-tint/5 p-2.5 text-ink-2 transition-colors hover:border-[#F6B100]/50 hover:text-accent sm:p-2"
               >
                 <FiPrinter size={14} />
               </button>
@@ -161,14 +161,14 @@ const OrderCard = ({ order }) => {
               <>
                 <button
                   onClick={() => setIsCancelOpen(true)}
-                  className="rounded-lg px-2 py-1.5 text-xs font-semibold text-ink-3 transition-colors hover:text-red-400"
+                  className="rounded-lg px-3 py-2.5 text-xs font-semibold text-ink-3 transition-colors hover:text-red-400 sm:px-2 sm:py-1.5"
                 >
                   Cancel
                 </button>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsPaymentOpen(true)}
-                  className="flex items-center gap-1.5 rounded-lg bg-[#F6B100] px-3.5 py-1.5 text-xs font-bold text-[#1a1a1a] shadow-glow transition-colors hover:bg-[#FFD25E]"
+                  className="flex items-center gap-1.5 rounded-lg bg-[#F6B100] px-4 py-2.5 text-xs font-bold sm:px-3.5 sm:py-1.5 text-[#1a1a1a] shadow-glow transition-colors hover:bg-[#FFD25E]"
                 >
                   <FaRegCreditCard size={12} /> Pay & close
                 </motion.button>

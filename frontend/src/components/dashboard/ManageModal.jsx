@@ -78,11 +78,11 @@ const ManageModal = ({ type, onClose }) => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+      <div className="fixed inset-0 z-50 flex overflow-y-auto overscroll-contain bg-black/60 px-4 py-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-surface-2 p-6 rounded-xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col"
+          className="m-auto flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col rounded-xl bg-surface-2 p-5 shadow-xl sm:p-6"
         >
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-ink text-lg font-bold">{cfg.title}</h2>

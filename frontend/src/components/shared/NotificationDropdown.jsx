@@ -56,7 +56,7 @@ const NotificationDropdown = () => {
       <button
         onClick={handleOpen}
         aria-label="Notifications"
-        className="relative cursor-pointer rounded-full border border-tint/10 bg-tint/5 p-3 transition-all hover:-translate-y-0.5 hover:border-[#F6B100]/50"
+        className="relative cursor-pointer rounded-full border border-tint/10 bg-tint/5 p-2.5 transition-all sm:p-3 hover:-translate-y-0.5 hover:border-[#F6B100]/50"
       >
         <FaBell className="text-xl text-ink" />
         {unread > 0 && (
@@ -74,7 +74,7 @@ const NotificationDropdown = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ duration: 0.18 }}
-            className="glass-card !absolute right-0 top-14 z-50 w-80 max-w-[calc(100vw-1rem)] overflow-hidden !rounded-2xl"
+            className="glass-card !fixed inset-x-2 top-[4.75rem] z-50 overflow-hidden !rounded-2xl sm:!absolute sm:inset-x-auto sm:right-0 sm:top-14 sm:w-80"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-tint/5">
@@ -102,7 +102,7 @@ const NotificationDropdown = () => {
             </div>
 
             {/* List */}
-            <div className="overflow-y-auto max-h-80 scrollbar-thin">
+            <div className="overflow-y-auto max-h-[min(20rem,60dvh)] scrollbar-thin">
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 gap-2">
                   <FaBell className="text-accent/30 text-4xl" />

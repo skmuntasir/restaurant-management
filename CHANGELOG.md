@@ -1,5 +1,17 @@
 # Changelog
 
+## Mobile-friendly pass
+- Menu: the order panel is now a real bottom sheet on phones (it used to sit beside the menu and squash it).
+- Notification dropdown no longer runs off the left edge on narrow screens.
+- Tables: status filter pills no longer force sideways scrolling; table cards wrap their status pill instead of clipping it.
+- Pages use dynamic viewport height (`dvh`), so nothing is cut off by the mobile browser's address/tool bars; Orders layout no longer relies on a hardcoded header height.
+- Safe-area support: bottom nav and floating buttons clear the iPhone home bar / gesture bar.
+- Form fields are 16px on touch screens (stops iOS zooming in on focus); hover effects only apply on devices that can hover.
+- Bigger touch targets: quantity steppers, order-card actions, modal close buttons, chips.
+- Modals scroll and stay inside the screen on short phones; dashboard tables scroll sideways inside their card.
+- Header, sign-in ticket and Menu header fit 320px screens; tapping a bar in the weekly revenue chart shows its amount.
+- Frontend only. No backend or API changes.
+
 ## Rebrand: Restro → Red Wood
 - The app is now called **Red Wood**: header, sign-in/sign-up screens, page titles, loading screen, printed receipts and the HTML title/description.
 - Internal storage keys (theme, order draft, session) keep their old names so existing devices don't lose their settings.

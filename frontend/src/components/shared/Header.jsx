@@ -61,7 +61,7 @@ const Header = () => {
   });
 
   return (
-    <header className="sticky top-0 z-40 flex h-20 items-center justify-between border-b border-tint/5 bg-page/95 px-4 sm:px-8">
+    <header className="sticky top-0 z-40 flex h-20 items-center justify-between border-b border-tint/5 bg-page/95 px-3 sm:px-8">
       {/* LOGO */}
       <button onClick={() => navigate("/")} className="group flex items-center gap-3 rounded-lg" aria-label="Go to home">
         <img src={logo} className="logo-adaptive h-9 w-9 transition-transform group-hover:rotate-6" alt="" />
@@ -69,14 +69,14 @@ const Header = () => {
       </button>
 
       {/* RIGHT SIDE */}
-      <div className="flex items-center gap-1.5 sm:gap-4">
+      <div className="flex items-center gap-1 min-[380px]:gap-1.5 sm:gap-4">
         {/* Dashboard shortcut — admin only */}
         {isAdmin && (
           <button
             onClick={() => navigate("/dashboard")}
             title="Admin dashboard"
             aria-label="Admin dashboard"
-            className={`relative rounded-full border p-3 transition-all hover:-translate-y-0.5 hover:border-[#F6B100]/50 ${
+            className={`relative rounded-full border p-2.5 sm:p-3 transition-all hover:-translate-y-0.5 hover:border-[#F6B100]/50 ${
               location.pathname === "/dashboard" ? "border-[#F6B100]/40 bg-[#F6B100]/15 text-accent" : "border-tint/10 bg-tint/5 text-ink"
             }`}
           >
@@ -98,7 +98,7 @@ const Header = () => {
         {/* Profile */}
         <button
           onClick={() => navigate("/profile")}
-          className="flex items-center gap-3 rounded-full border border-transparent p-1 pr-3 transition-colors hover:border-tint/10 hover:bg-tint/5"
+          className="flex items-center gap-3 rounded-full border border-transparent p-1 pr-1 transition-colors sm:pr-3 hover:border-tint/10 hover:bg-tint/5"
           aria-label="Open profile"
         >
           <span
@@ -120,7 +120,7 @@ const Header = () => {
           onClick={() => setConfirmOpen(true)}
           title="Sign out"
           aria-label="Sign out"
-          className="rounded-full border border-tint/10 bg-tint/5 p-3 text-ink transition-colors hover:border-red-500/40 hover:bg-red-500/15 hover:text-red-400"
+          className="rounded-full border border-tint/10 bg-tint/5 p-2.5 text-ink transition-colors sm:p-3 hover:border-red-500/40 hover:bg-red-500/15 hover:text-red-400"
         >
           <IoLogOut size={20} />
         </button>

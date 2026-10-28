@@ -54,9 +54,9 @@ const RecentOrders = () => {
           <h2 className="font-display text-xl font-bold text-ink">Recent orders</h2>
           <p className="text-xs text-ink-3">{filtered.length} of {orders.length} orders</p>
         </div>
-        <label className="flex items-center gap-2 rounded-full border border-tint/10 bg-tint/5 px-4 py-2 text-sm transition-colors focus-within:border-[#F6B100]/60">
+        <label className="flex w-full items-center gap-2 rounded-full border border-tint/10 bg-tint/5 px-4 py-2 text-sm transition-colors focus-within:border-[#F6B100]/60 sm:w-auto">
           <FiSearch className="text-ink-2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, phone, table…" aria-label="Search orders" className="w-48 bg-transparent text-ink placeholder-ink-4 focus:outline-none" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, phone, table…" aria-label="Search orders" className="min-w-0 flex-1 bg-transparent text-ink placeholder-ink-4 focus:outline-none sm:w-48 sm:flex-none" />
         </label>
       </div>
 
@@ -77,8 +77,8 @@ const RecentOrders = () => {
         </div>
       )}
       {filtered.length > 0 && (
-        <div className="max-h-[calc(100vh-24rem)] min-h-[200px] overflow-auto scrollbar-thin">
-          <table className="w-full text-left text-sm text-ink">
+        <div className="max-h-[calc(100dvh-24rem)] min-h-[200px] overflow-auto scrollbar-thin">
+          <table className="w-full min-w-[720px] text-left text-sm text-ink">
             <thead className="sticky top-0 z-10 bg-surface">
               <tr className="text-[11px] uppercase tracking-[0.15em] text-ink-3">
                 {["Order", "Customer", "Status", "Date", "Items", "Table", "Total"].map((h) => <th key={h} className="px-5 py-3 font-semibold">{h}</th>)}

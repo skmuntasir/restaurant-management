@@ -7,7 +7,7 @@ const NotFound = () => {
   useEffect(() => { document.title = "POS | Page not found"; }, []);
 
   return (
-    <section className="page-ambient flex h-[calc(100vh-5rem)] flex-col items-center justify-center overflow-hidden px-6 pb-24 text-center">
+    <section className="page-ambient flex h-[calc(100dvh-5rem)] flex-col items-center justify-center overflow-hidden px-6 pb-[calc(6rem+var(--sab))] text-center">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

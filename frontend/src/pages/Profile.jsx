@@ -47,7 +47,7 @@ const Profile = () => {
   ];
 
   return (
-    <section className="page-ambient h-[calc(100vh-5rem)] overflow-y-auto overscroll-none scrollbar-thin pb-24">
+    <section className="page-ambient h-[calc(100dvh-5rem)] overflow-y-auto overscroll-none scrollbar-thin pb-[calc(6rem+var(--sab))]">
       <div className="border-b border-tint/5 px-4 py-5 sm:px-10">
         <div className="mx-auto flex max-w-[1400px] items-center gap-4">
           <BackButton />

@@ -195,7 +195,7 @@ const Tables = () => {
   const countFor = { all: floorTables.length, available: availableCount, booked: floorTables.filter((t) => t.status === "booked").length };
 
   return (
-    <section className="page-ambient min-h-[calc(100vh-5rem)] pb-24 overscroll-none">
+    <section className="page-ambient min-h-[calc(100dvh-5rem)] pb-[calc(6rem+var(--sab))] overscroll-none">
       {/* Header */}
       <div className="border-b border-tint/5 px-4 py-5 sm:px-8">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4">
@@ -212,8 +212,8 @@ const Tables = () => {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex gap-1" role="tablist" aria-label="Filter tables">
+          <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
+            <div className="flex max-w-full gap-1 overflow-x-auto scrollbar-hide" role="tablist" aria-label="Filter tables">
               {["all", "available", "booked"].map((s) => {
                 const active = filter === s;
                 return (
@@ -222,7 +222,7 @@ const Tables = () => {
                     role="tab"
                     aria-selected={active}
                     onClick={() => setFilter(s)}
-                    className={`relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold capitalize transition-colors ${
+                    className={`relative flex shrink-0 items-center gap-1 rounded-full px-2 py-2 text-sm font-semibold capitalize transition-colors min-[400px]:gap-1.5 min-[400px]:px-2.5 sm:gap-2 sm:px-4 ${
                       active ? "text-ink" : "text-ink-3 hover:text-ink"
                     }`}
                   >
@@ -275,14 +275,14 @@ const Tables = () => {
             {draftReady && (
               <button
                 onClick={() => navigate("/menu")}
-                className="rounded-full bg-emerald-400 px-3.5 py-1 text-xs font-bold text-[#06261a] transition-opacity hover:opacity-90"
+                className="rounded-full bg-emerald-400 px-3.5 py-1.5 text-xs font-bold max-sm:py-2 text-[#06261a] transition-opacity hover:opacity-90"
               >
                 {isAppending ? "Resume" : "Go to menu"} →
               </button>
             )}
             <button
               onClick={() => { dispatch(removeCustomer()); dispatch(removeAllItems()); enqueueSnackbar("Order discarded.", { variant: "info" }); }}
-              className="rounded-full border border-current px-3 py-1 text-xs font-semibold opacity-80 transition-opacity hover:opacity-100"
+              className="rounded-full border border-current px-3 py-1.5 text-xs font-semibold opacity-80 max-sm:py-2 transition-opacity hover:opacity-100"
             >
               {isAppending ? "Discard" : "Discard order"}
             </button>
@@ -398,7 +398,7 @@ const Tables = () => {
                   <button
                     onClick={() => releaseMutation.mutate(table._id)}
                     disabled={releaseMutation.isPending}
-                    className="rounded-lg bg-[#F6B100] px-3 py-1 text-[11px] font-bold text-[#1a1a1a] transition-colors hover:bg-[#FFD25E] disabled:opacity-50"
+                    className="rounded-lg bg-[#F6B100] px-3.5 py-2 text-[11px] font-bold text-[#1a1a1a] transition-colors hover:bg-[#FFD25E] disabled:opacity-50"
                   >
                     Release
                   </button>

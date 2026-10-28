@@ -38,17 +38,17 @@ const Modal = ({ setIsTableModalOpen, item }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+    <div className="fixed inset-0 z-50 flex overflow-y-auto overscroll-contain bg-black/60 px-4 py-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="bg-surface-2 p-6 rounded-lg shadow-lg w-full max-w-sm"
+        className="m-auto w-full max-w-sm rounded-lg bg-surface-2 p-5 shadow-lg sm:p-6"
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-ink text-xl font-semibold">{isEdit ? "Edit Table" : "Add Table"}</h2>
-          <button onClick={() => setIsTableModalOpen(false)} className="text-ink hover:text-red-500">
+          <button onClick={() => setIsTableModalOpen(false)} className="-m-2 p-2 text-ink hover:text-red-500">
             <IoMdClose size={24} />
           </button>
         </div>

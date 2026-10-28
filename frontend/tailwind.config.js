@@ -4,6 +4,7 @@
 const v = (name) => `rgb(var(--c-${name}) / <alpha-value>)`;
 
 module.exports = {
+  future: { hoverOnlyWhenSupported: true },
   darkMode: ['selector', '[data-theme="dark"]'],
   content: [
     "./index.html",

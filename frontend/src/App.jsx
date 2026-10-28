@@ -26,7 +26,7 @@ const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 
 // No spinner here: chunks are prefetched, so this only shows for a split second
 // on a cold load, and a flashing spinner reads as a jolt. A calm blank canvas doesn't.
-const PageFallback = () => <div className="bg-canvas min-h-[calc(100vh-5rem)]" />;
+const PageFallback = () => <div className="bg-canvas min-h-[calc(100dvh-5rem)]" />;
 
 // Pure cross-fade: no sliding, so nothing moves around while the page changes.
 const PageTransition = ({ children }) => (

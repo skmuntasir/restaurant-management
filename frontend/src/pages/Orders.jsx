@@ -66,9 +66,9 @@ const Orders = () => {
   }, [visibleOrders, status, search]);
 
   return (
-    <section className="page-ambient h-[calc(100vh-5rem)] overflow-hidden overscroll-none">
+    <section className="page-ambient flex h-[calc(100dvh-5rem)] flex-col overflow-hidden overscroll-none">
       {/* Page header */}
-      <div className="border-b border-tint/5 px-4 py-5 sm:px-10">
+      <div className="shrink-0 border-b border-tint/5 px-4 py-4 sm:px-10 sm:py-5">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <BackButton />
@@ -81,14 +81,14 @@ const Orders = () => {
             </div>
           </div>
 
-          <label className="flex items-center gap-2 rounded-full border border-tint/10 bg-tint/5 px-4 py-2.5 text-sm backdrop-blur transition-colors focus-within:border-[#F6B100]/60 focus-within:bg-tint/10">
+          <label className="flex w-full items-center gap-2 rounded-full border border-tint/10 bg-tint/5 px-4 py-2.5 text-sm backdrop-blur sm:w-auto transition-colors focus-within:border-[#F6B100]/60 focus-within:bg-tint/10">
             <FiSearch className="text-ink-2" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name, phone, table, #id…"
               aria-label="Search orders"
-              className="w-52 bg-transparent text-ink placeholder-ink-4 focus:outline-none sm:w-64"
+              className="min-w-0 flex-1 bg-transparent text-ink placeholder-ink-4 focus:outline-none sm:w-64 sm:flex-none"
             />
           </label>
         </div>
@@ -126,7 +126,7 @@ const Orders = () => {
       </div>
 
       {/* Orders grid */}
-      <div className="h-[calc(100vh-5rem-9.5rem)] overflow-y-auto scrollbar-thin px-4 pb-24 pt-5 sm:px-10">
+      <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin px-4 pb-[calc(6rem+var(--sab))] pt-5 sm:px-10">
         <div className="mx-auto grid max-w-[1400px] grid-cols-[repeat(auto-fill,minmax(270px,1fr))] items-start gap-4">
           {isLoading && Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-[250px] w-full rounded-[20px]" />)}
         </div>

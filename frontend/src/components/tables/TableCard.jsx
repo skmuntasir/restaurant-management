@@ -26,15 +26,15 @@ const TableCard = ({ name, status, seats, currentOrder, isMergeMode, isSelectedF
     <motion.div
       whileHover={interactive ? { y: -4 } : undefined}
       whileTap={interactive ? { scale: 0.97 } : undefined}
-      className={`glass-card group flex h-full select-none flex-col gap-3 overflow-hidden p-4 transition-all ${
+      className={`glass-card group flex h-full select-none flex-col gap-3 overflow-hidden p-3.5 transition-all sm:p-4 ${
         ""
       } ${interactive ? "cursor-pointer hover:!border-[#F6B100]/60" : ""} ${
         isSelectedForMerge ? "ring-2 ring-[#F6B100]" : ""
       }`}
     >
       {/* Header */}
-      <div className="relative flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
+      <div className="relative flex flex-wrap items-center justify-between gap-x-2 gap-y-2">
+        <div className="flex min-w-0 items-center gap-2.5">
           <span className={`flex h-10 w-10 items-center justify-center rounded-xl text-xl ${
             isBooked ? "bg-red-500/10 text-red-500" : "bg-emerald-500/10 text-emerald-500"
           }`}>
@@ -45,7 +45,7 @@ const TableCard = ({ name, status, seats, currentOrder, isMergeMode, isSelectedF
             <p className="mt-1 text-[11px] text-ink-3">{seats} seat{seats !== 1 ? "s" : ""}</p>
           </div>
         </div>
-        <span className={`flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+        <span className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
           isBooked
             ? "border-transparent bg-red-500/10 text-red-500"
             : "border-transparent bg-emerald-500/10 text-emerald-600"
@@ -70,7 +70,7 @@ const TableCard = ({ name, status, seats, currentOrder, isMergeMode, isSelectedF
           </div>
         </div>
       ) : (
-        <div className="relative flex items-center justify-between rounded-xl bg-shade/20 px-3 py-2">
+        <div className="relative flex flex-col items-start gap-0.5 rounded-xl bg-shade/20 px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
           <span className="text-xs text-ink-2">Ready for guests</span>
           <span className="text-[11px] font-semibold text-accent">
             {isMergeMode ? "" : isOrderingFlow ? "Tap to add →" : "Tap to seat guests →"}

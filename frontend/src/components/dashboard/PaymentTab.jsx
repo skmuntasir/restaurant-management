@@ -57,8 +57,8 @@ const PaymentTab = () => {
         ) : orders.length === 0 ? (
           <p className="py-14 text-center text-sm text-ink-3">No orders yet.</p>
         ) : (
-          <div className="max-h-[calc(100vh-30rem)] min-h-[240px] overflow-auto scrollbar-thin">
-            <table className="w-full text-left text-sm">
+          <div className="max-h-[calc(100dvh-30rem)] min-h-[240px] overflow-auto scrollbar-thin">
+            <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="sticky top-0 z-10 bg-surface">
                 <tr className="text-[11px] uppercase tracking-[0.15em] text-ink-3">
                   {["Customer", "Table", "Staff", "Amount", "Status", "Method", "Action"].map((h) => <th key={h} className="px-5 py-3 font-semibold">{h}</th>)}

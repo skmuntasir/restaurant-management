@@ -56,15 +56,15 @@ const AddDishModal = ({ onClose, item }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+    <div className="fixed inset-0 z-50 flex overflow-y-auto overscroll-contain bg-black/60 px-4 py-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-surface-2 p-6 rounded-xl shadow-xl w-full max-w-md"
+        className="m-auto w-full max-w-md rounded-xl bg-surface-2 p-5 shadow-xl sm:p-6"
       >
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-ink text-lg font-bold">{isEdit ? "Edit Dish" : "Add Dish"}</h2>
-          <button onClick={onClose} className="text-ink-2 hover:text-red-400">
+          <button onClick={onClose} className="-m-2 p-2 text-ink-2 hover:text-red-400">
             <IoMdClose size={22} />
           </button>
         </div>

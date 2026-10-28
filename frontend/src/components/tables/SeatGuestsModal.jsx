@@ -76,7 +76,7 @@ const SeatGuestsModal = ({ table, onClose, onConfirm }) => {
               key={n}
               type="button"
               onClick={() => setGuests(String(n))}
-              className={`h-8 min-w-8 rounded-full border px-2.5 text-xs font-semibold transition-colors ${
+              className={`h-9 min-w-9 rounded-full border px-2.5 text-xs font-semibold transition-colors ${
                 guestCount === n
                   ? "border-[#F6B100] bg-[#F6B100] text-[#1a1a1a]"
                   : "border-tint/10 bg-tint/5 text-ink-2 hover:text-ink"

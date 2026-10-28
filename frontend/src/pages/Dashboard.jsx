@@ -33,9 +33,9 @@ const Dashboard = () => {
     if (!menuOpen) return;
     const onDown = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
     const onKey = (e) => { if (e.key === "Escape") setMenuOpen(false); };
-    document.addEventListener("mousedown", onDown);
+    document.addEventListener("pointerdown", onDown);
     document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+    return () => { document.removeEventListener("pointerdown", onDown); document.removeEventListener("keydown", onKey); };
   }, [menuOpen]);
 
   const open = (action) => { setMenuOpen(false); setActiveModal(action); };
@@ -43,7 +43,7 @@ const Dashboard = () => {
   useEffect(() => { document.title = "POS | Dashboard"; }, []);
 
   return (
-    <section className="page-ambient h-[calc(100vh-5rem)] overflow-y-auto overscroll-none scrollbar-thin pb-24">
+    <section className="page-ambient h-[calc(100dvh-5rem)] overflow-y-auto overscroll-none scrollbar-thin pb-[calc(6rem+var(--sab))]">
       {/* Page header — same pattern as Orders / Tables / Menu */}
       <div className="border-b border-tint/5 px-4 py-5 sm:px-10">
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4">
@@ -55,18 +55,18 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div ref={menuRef} className="relative">
+          <div ref={menuRef} className="relative max-sm:w-full">
             <button
               onClick={() => setMenuOpen((o) => !o)}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
-              className="flex items-center gap-2 rounded-full bg-[#F6B100] px-5 py-2.5 text-sm font-semibold text-[#1a1a1a] transition-colors hover:bg-[#FFD25E]"
+              className="flex items-center gap-2 rounded-full bg-[#F6B100] px-5 py-2.5 text-sm font-semibold text-[#1a1a1a] transition-colors hover:bg-[#FFD25E] max-sm:w-full max-sm:justify-center"
             >
               Manage menu &amp; tables <MdKeyboardArrowDown className="text-lg" />
             </button>
 
             {menuOpen && (
-              <div role="menu" className="glass-card absolute right-0 top-full z-30 mt-2 w-72 overflow-hidden p-2 shadow-lg">
+              <div role="menu" className="glass-card absolute right-0 top-full z-30 mt-2 w-72 overflow-hidden p-2 shadow-lg max-sm:w-full">
                 {manageRows.map(({ label, icon, add, manage }) => (
                   <div key={label} className="flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 hover:bg-tint/5">
                     <span className="flex items-center gap-2.5 text-sm font-semibold text-ink">
@@ -76,14 +76,14 @@ const Dashboard = () => {
                       <button
                         role="menuitem"
                         onClick={() => open(add)}
-                        className="flex items-center gap-1 rounded-full border border-tint/10 px-3 py-1 text-xs font-semibold text-ink hover:bg-tint/10"
+                        className="flex items-center gap-1 rounded-full border border-tint/10 px-3 py-1.5 text-xs font-semibold text-ink hover:bg-tint/10"
                       >
                         <MdAdd /> Add
                       </button>
                       <button
                         role="menuitem"
                         onClick={() => open(manage)}
-                        className="flex items-center gap-1 rounded-full border border-tint/10 px-3 py-1 text-xs font-semibold text-ink hover:bg-tint/10"
+                        className="flex items-center gap-1 rounded-full border border-tint/10 px-3 py-1.5 text-xs font-semibold text-ink hover:bg-tint/10"
                       >
                         <MdEdit /> Edit
                       </button>

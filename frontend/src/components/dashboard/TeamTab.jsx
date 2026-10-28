@@ -149,8 +149,8 @@ const TeamTab = () => {
           <button onClick={() => refetch()} className="mt-3 rounded-full border border-tint/10 px-4 py-1.5 text-xs font-semibold text-ink hover:bg-tint/10">Try again</button>
         </div>
       ) : (
-        <div className="max-h-[calc(100vh-24rem)] min-h-[200px] overflow-auto scrollbar-thin">
-          <table className="w-full text-left text-sm text-ink">
+        <div className="max-h-[calc(100dvh-24rem)] min-h-[200px] overflow-auto scrollbar-thin">
+          <table className="w-full min-w-[720px] text-left text-sm text-ink">
             <thead className="sticky top-0 z-10 bg-surface">
               <tr className="text-[11px] uppercase tracking-[0.15em] text-ink-3">
                 {["Name", "Email", "Phone", "Role", "Joined", ""].map((h, i) => <th key={i} className="px-5 py-3 font-semibold">{h}</th>)}

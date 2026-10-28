@@ -51,7 +51,7 @@ const CancelOrderModal = ({ isOpen, onClose, order, onCancelled }) => {
             key={r}
             type="button"
             onClick={() => setReason(r)}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
               reason === r ? "border-[#F6B100] bg-[#F6B100] text-[#1a1a1a]" : "border-tint/10 bg-tint/5 text-ink-2 hover:text-ink"
             }`}
           >{r}</button>

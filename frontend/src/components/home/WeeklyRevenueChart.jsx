@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { getDateDaysAgo, isSameDay } from "../../utils";
 
@@ -19,6 +19,7 @@ const WeeklyRevenueChart = ({ orders }) => {
     return { days, totals };
   }, [orders]);
 
+  const [picked, setPicked] = useState(null); // tap a bar (touch screens have no hover)
   const max = Math.max(...totals, 1);
   const weekTotal = totals.reduce((a, b) => a + b, 0);
   const today = new Date();
@@ -47,8 +48,12 @@ const WeeklyRevenueChart = ({ orders }) => {
           const heightPct = Math.max((amount / max) * 100, amount > 0 ? 6 : 2);
           const isToday = isSameDay(days[i], today);
           return (
-            <div key={i} className="group relative flex h-full flex-1 flex-col items-center justify-end">
-              <div className="mb-1.5 whitespace-nowrap rounded-md bg-black/75 px-1.5 py-0.5 text-[10px] font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100">
+            <div
+              key={i}
+              onClick={() => setPicked((p) => (p === i ? null : i))}
+              className="group relative flex h-full flex-1 cursor-pointer flex-col items-center justify-end"
+            >
+              <div className={`mb-1.5 whitespace-nowrap rounded-md bg-black/75 px-1.5 py-0.5 text-[10px] font-semibold text-white transition-opacity group-hover:opacity-100 ${picked === i ? "opacity-100" : "opacity-0"}`}>
                 ৳{amount.toFixed(0)}
               </div>
               <motion.div

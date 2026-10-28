@@ -13,8 +13,8 @@ import { getCartItems, getDiscountPct } from '../redux/slices/cartSlice';
 import { selectDraftReady } from '../redux/slices/customerSlice';
 import { computeBill, formatMoney } from '../utils';
 
-// Header ≈ 5rem (80px), BottomNav = h-14 = 3.5rem (56px)  →  panel height = 100vh - 8.5rem
-const PANEL_HEIGHT = "lg:h-[calc(100vh-8.5rem)]";
+// Header ≈ 5rem (80px), BottomNav = h-14 = 3.5rem (56px)  →  panel height = 100dvh - 8.5rem
+const PANEL_HEIGHT = "lg:h-[calc(100dvh-8.5rem)]";
 
 /**
  * One page, two modes:
@@ -35,25 +35,25 @@ const Menu = () => {
   const isAppending = Boolean(customerData.appendOrderId);
 
   return (
-    <section className="page-ambient flex h-[calc(100vh-5rem)] gap-4 overflow-hidden overscroll-none">
+    <section className="page-ambient flex h-[calc(100dvh-5rem)] gap-4 overflow-hidden overscroll-none">
 
       {/* ── LEFT: category chips + dish grid ── */}
-      <div className={`flex min-w-0 flex-[3] flex-col overflow-hidden lg:pb-14 ${orderMode ? "pb-36" : "pb-16"}`}>
-        <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-4">
+      <div className={`flex min-w-0 flex-[3] flex-col overflow-hidden lg:pb-14 ${orderMode ? "pb-[calc(9rem+var(--sab))]" : "pb-[calc(4rem+var(--sab))]"}`}>
+        <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             <BackButton />
-            <div>
+            <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
                 {!orderMode ? "Browse" : isAppending ? "Adding dishes" : "Order builder"}
               </p>
-              <h1 className="mt-0.5 font-display text-2xl font-bold text-ink sm:text-3xl">
+              <h1 className="mt-0.5 truncate font-display text-2xl font-bold text-ink sm:text-3xl">
                 {orderMode ? "Menu" : "Our menu"}
               </h1>
             </div>
           </div>
 
           {orderMode ? (
-            <div className="flex items-center gap-3 rounded-full border border-tint/10 bg-tint/5 py-1.5 pl-1.5 pr-4 backdrop-blur">
+            <div className="flex shrink-0 items-center gap-3 rounded-full border border-tint/10 bg-tint/5 py-1.5 pl-1.5 pr-4 backdrop-blur">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F6B100] text-xs font-bold text-[#1a1a1a]">
                 {(customerData.customerName || "Guest").trim()[0].toUpperCase()}
               </span>
@@ -66,7 +66,7 @@ const Menu = () => {
           ) : (
             <button
               onClick={() => navigate("/tables")}
-              className="flex items-center gap-2 rounded-full bg-[#F6B100] px-4 py-2.5 text-xs font-bold text-[#1a1a1a] shadow-glow transition-colors hover:bg-[#FFD25E]"
+              className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-[#F6B100] px-4 py-2.5 text-xs font-bold text-[#1a1a1a] shadow-glow transition-colors hover:bg-[#FFD25E]"
             >
               <MdTableBar size={16} /> Start an order
             </button>
@@ -84,7 +84,7 @@ const Menu = () => {
           {/* ── Phone / small tablet: sticky "View order" bar above the bottom nav ── */}
           <button
             onClick={() => setSheetOpen(true)}
-            className="fixed inset-x-4 bottom-[4.75rem] z-30 flex items-center justify-between rounded-2xl bg-[#F6B100] px-5 py-3.5 text-sm font-bold text-[#1a1a1a] shadow-glow lg:hidden"
+            className="fixed inset-x-4 bottom-[calc(4.75rem+var(--sab))] z-30 flex items-center justify-between rounded-2xl bg-[#F6B100] px-5 py-3.5 text-sm font-bold text-[#1a1a1a] shadow-glow lg:hidden"
           >
             <span className="flex items-center gap-2">
               <FaShoppingBag />
@@ -97,17 +97,18 @@ const Menu = () => {
           )}
 
           {/* ── RIGHT: order panel (a side panel on large screens, a bottom sheet below) ──
+               NOTE: .glass-card sets position:relative later in the CSS, so the sheet needs max-lg:!fixed to really float.
                CustomerInfo → fixed, CartInfo → scrollable, Bill → pinned. */}
           <div
             className={`${sheetOpen ? "flex" : "hidden"} lg:flex glass-card flex-col overflow-hidden
-              fixed inset-x-0 bottom-0 z-50 h-[85vh] max-lg:!rounded-b-none max-lg:!rounded-t-3xl
+              fixed max-lg:!fixed inset-x-0 bottom-0 z-50 h-[85dvh] max-lg:pb-[var(--sab)] max-lg:!rounded-b-none max-lg:!rounded-t-3xl
               lg:static lg:z-auto lg:mr-4 lg:mt-1 lg:max-w-[400px] lg:min-w-[300px] lg:flex-[1] ${PANEL_HEIGHT}`}
             role={sheetOpen ? "dialog" : undefined}
             aria-label="Current order"
           >
             <div className="flex shrink-0 items-center justify-between px-5 pt-3 lg:hidden">
               <span className="h-1 w-10 rounded-full bg-tint/20" aria-hidden="true" />
-              <button onClick={() => setSheetOpen(false)} aria-label="Close order" className="rounded-lg p-1 text-ink-2 hover:bg-tint/5 hover:text-ink">
+              <button onClick={() => setSheetOpen(false)} aria-label="Close order" className="-m-1.5 rounded-lg p-2.5 text-ink-2 hover:bg-tint/5 hover:text-ink">
                 <IoMdClose size={22} />
               </button>
             </div>

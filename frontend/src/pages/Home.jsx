@@ -55,7 +55,7 @@ const Home = () => {
   }, [orders]);
 
   return (
-    <section className="page-ambient h-[calc(100vh-5rem)] overflow-y-auto overscroll-none scrollbar-thin pb-24">
+    <section className="page-ambient h-[calc(100dvh-5rem)] overflow-y-auto overscroll-none scrollbar-thin pb-[calc(6rem+var(--sab))]">
       <div className="mx-auto max-w-[1400px] space-y-5 px-4 pt-5 sm:px-6 lg:px-8">
         <motion.div {...rise(0)}>
           <Greetings openOrders={stats.openOrders} />

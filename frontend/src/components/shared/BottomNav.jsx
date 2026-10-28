@@ -70,7 +70,7 @@ const BottomNav = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 flex h-14 items-stretch border-t border-tint/5 bg-page/95 px-2" aria-label="Main">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 flex h-[calc(3.5rem+var(--sab))] items-stretch border-t border-tint/5 bg-page/95 pb-[var(--sab)] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))]" aria-label="Main">
       <NavTab active={isActive("/")} onClick={() => navigate("/")} icon={FaHome} label="Home" />
       <NavTab active={isActive("/menu") && !draftReady} onClick={() => navigate("/menu")} icon={MdMenuBook} label="Menu" />
 
@@ -85,7 +85,7 @@ const BottomNav = () => {
           writes its own inline `transform`, which overwrote Tailwind's
           -translate-x-1/2 and made the button jump/shift. Press feedback only
           (no hover scale) so the icon never appears to drift. */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
+      <div className="absolute bottom-[calc(1.25rem+var(--sab))] left-1/2 -translate-x-1/2">
         <motion.button
           onClick={() => navigate("/tables")}
           whileTap={{ scale: 0.94 }}
@@ -106,18 +106,18 @@ const BottomNav = () => {
             initial={{ opacity: 0, y: 10, x: "-50%" }}
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: 10, x: "-50%" }}
-            className="absolute bottom-[5.25rem] left-1/2 flex items-center overflow-hidden whitespace-nowrap rounded-full border border-[#F6B100]/40 bg-surface text-xs font-semibold shadow-glow"
+            className="absolute bottom-[calc(5.25rem+var(--sab))] left-1/2 flex max-w-[calc(100vw-1rem)] items-center overflow-hidden whitespace-nowrap rounded-full border border-[#F6B100]/40 bg-surface text-xs font-semibold shadow-glow"
           >
             <button
               onClick={() => navigate(draftReady ? "/menu" : "/tables")}
-              className="py-2 pl-4 pr-3 text-accent-soft transition-colors hover:bg-tint/5"
+              className="min-w-0 truncate py-2.5 pl-4 pr-3 text-accent-soft transition-colors hover:bg-tint/5"
             >
               Resume · {resumeLabel}{cartCount > 0 && ` · ${cartCount} item${cartCount > 1 ? "s" : ""}`}
             </button>
             <button
               onClick={requestDiscard}
               aria-label="Discard order"
-              className="border-l border-tint/10 px-3 py-2 text-ink-2 transition-colors hover:bg-tint/5 hover:text-red-400"
+              className="border-l border-tint/10 px-3.5 py-2.5 text-ink-2 transition-colors hover:bg-tint/5 hover:text-red-400"
             >
               <IoMdClose size={14} />
             </button>

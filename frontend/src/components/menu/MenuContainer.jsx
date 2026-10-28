@@ -200,20 +200,20 @@ const DishCard = memo(function DishCard({ item, canToggle, onAdd, onToggle, togg
               <button
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
                 aria-label={`Decrease ${item.name} quantity`}
-                className="h-6 w-6 rounded-full text-lg font-bold leading-none text-accent hover:bg-tint/10"
+                className="h-6 w-6 rounded-full text-lg font-bold leading-none text-accent hover:bg-tint/10 max-sm:h-8 max-sm:w-8"
               >&minus;</button>
-              <span className="w-5 text-center text-sm font-semibold text-ink">{qty}</span>
+              <span className="w-5 text-center text-sm font-semibold text-ink max-sm:w-6">{qty}</span>
               <button
                 onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
                 aria-label={`Increase ${item.name} quantity`}
-                className="h-6 w-6 rounded-full text-lg font-bold leading-none text-accent hover:bg-tint/10"
+                className="h-6 w-6 rounded-full text-lg font-bold leading-none text-accent hover:bg-tint/10 max-sm:h-8 max-sm:w-8"
               >&#43;</button>
             </div>
             <motion.button
               whileTap={{ scale: 0.88 }}
               onClick={add}
               aria-label={`Add ${item.name} to cart`}
-              className={`rounded-full p-2.5 transition-colors ${
+              className={`rounded-full p-2.5 transition-colors max-sm:p-3 ${
                 justAdded ? "bg-[#02ca3a] text-[#0b2a12]" : "bg-[#F6B100] text-[#1a1a1a] hover:bg-[#FFD25E]"
               }`}
             >

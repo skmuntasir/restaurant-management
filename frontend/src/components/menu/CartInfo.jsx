@@ -159,19 +159,19 @@ const CartInfo = () => {
                     <button
                       onClick={() => dispatch(setItemQuantity({ id: item.id, quantity: item.quantity - 1 }))}
                       aria-label={`Decrease ${item.name}`}
-                      className="w-6 h-6 text-yellow-500 font-bold rounded hover:bg-tint/10"
+                      className="w-6 h-6 text-yellow-500 font-bold rounded hover:bg-tint/10 max-sm:w-9 max-sm:h-9 max-sm:text-lg"
                     >&minus;</button>
                     <span className="w-6 text-center text-ink text-xs font-semibold">{item.quantity}</span>
                     <button
                       onClick={() => dispatch(setItemQuantity({ id: item.id, quantity: item.quantity + 1 }))}
                       aria-label={`Increase ${item.name}`}
-                      className="w-6 h-6 text-yellow-500 font-bold rounded hover:bg-tint/10"
+                      className="w-6 h-6 text-yellow-500 font-bold rounded hover:bg-tint/10 max-sm:w-9 max-sm:h-9 max-sm:text-lg"
                     >&#43;</button>
                   </div>
                   <button
                     onClick={() => dispatch(removeItem(item.id))}
                     aria-label={`Remove ${item.name}`}
-                    className="p-1 text-red-400 transition-colors hover:text-red-300"
+                    className="p-1 text-red-400 transition-colors hover:text-red-300 max-sm:p-2.5"
                   >
                     <RiDeleteBin2Fill size={15} />
                   </button>

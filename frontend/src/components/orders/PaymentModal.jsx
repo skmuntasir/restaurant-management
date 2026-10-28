@@ -191,7 +191,7 @@ const PaymentModal = ({ isOpen, onClose, order, onPaid }) => {
                       type="button"
                       onClick={() => switchDiscType(t)}
                       aria-pressed={discType === t}
-                      className={`w-9 py-1 transition-colors ${discType === t ? "bg-[#F6B100] text-gray-900" : "bg-tint/5 text-ink-2 hover:text-ink"}`}
+                      className={`w-10 py-1.5 transition-colors ${discType === t ? "bg-[#F6B100] text-gray-900" : "bg-tint/5 text-ink-2 hover:text-ink"}`}
                     >
                       {label}
                     </button>
@@ -224,7 +224,7 @@ const PaymentModal = ({ isOpen, onClose, order, onPaid }) => {
                       key={p}
                       type="button"
                       onClick={() => setDiscValue(String(p))}
-                      className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
                         discInput === p ? "border-[#F6B100] bg-[#F6B100]/15 text-accent-soft" : "border-tint/10 bg-tint/5 text-ink-2 hover:text-ink"
                       }`}
                     >
@@ -272,7 +272,7 @@ const PaymentModal = ({ isOpen, onClose, order, onPaid }) => {
                     key={n}
                     type="button"
                     onClick={() => setReceived(String(n))}
-                    className="rounded-full border border-tint/10 bg-tint/5 px-3 py-1 text-xs font-semibold text-ink-2 transition-colors hover:text-ink"
+                    className="rounded-full border border-tint/10 bg-tint/5 px-3 py-1.5 text-xs font-semibold text-ink-2 transition-colors hover:text-ink"
                   >
                     {i === 0 ? "Exact" : formatMoney(n).replace(".00", "")}
                   </button>

@@ -30,7 +30,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
           onMouseDown={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-4 backdrop-blur-sm"
         >
           <motion.div
             role="dialog"
@@ -40,19 +40,19 @@ const Modal = ({ isOpen, onClose, title, children }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="glass-card w-full max-w-md overflow-hidden"
+            className="glass-card flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden"
           >
-            <div className="flex items-center justify-between border-b border-tint/5 px-6 py-4">
+            <div className="flex shrink-0 items-center justify-between border-b border-tint/5 px-5 py-3.5 sm:px-6 sm:py-4">
               <h2 className="font-display text-xl font-bold text-ink">{title}</h2>
               <button
                 onClick={onClose}
                 aria-label="Close"
-                className="rounded-lg p-1 text-ink-2 transition-colors hover:bg-tint/5 hover:text-red-400"
+                className="-mr-1.5 rounded-lg p-2 text-ink-2 transition-colors hover:bg-tint/5 hover:text-red-400"
               >
                 <IoMdClose size={22} />
               </button>
             </div>
-            <div className="px-6 py-5">{children}</div>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 sm:px-6 sm:py-5">{children}</div>
           </motion.div>
         </motion.div>
       )}
