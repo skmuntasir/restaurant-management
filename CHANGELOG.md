@@ -1,5 +1,13 @@
 # Changelog
 
+## New Red Wood emblem
+- Browser-tab icon (`public/favicon.png`), header logo and loading-screen logo now use the new circular Red Wood Restro emblem (transparent background, works on light and dark themes).
+- Header no longer applies the light-mode colour inversion that the old white logo needed.
+- Favicon link has `?v=2` so browsers pick up the new icon instead of the cached old one.
+
+## Popular dishes: no photos
+- Removed the dish photos from Popular dishes. They were picked by rank from a few placeholder pictures, so they didn't match the dish. Rank, name, bar and count remain.
+
 ## Staff tracking on the Orders page (admin only)
 - Every order card shows **Taken by <name>**, with an **Admin** badge when an admin took the order.
 - New **Taken by** bar above the orders: how many orders each staff member (admins included) took on the current board. Tap a person to see only their orders; the status counts follow the selection.

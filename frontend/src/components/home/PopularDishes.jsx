@@ -3,14 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getPopularItems } from "../../https";
 import Skeleton from "../ui/Skeleton";
 
-// Placeholder dish images from assets (used when a real image isn't linked)
-import butterChicken from "../../assets/images/butter-chicken-4.jpg";
-import biryani from "../../assets/images/hyderabadibiryani.jpg";
-import masalaDosa from "../../assets/images/masala-dosa.jpg";
-import choleBhature from "../../assets/images/chole-bhature.jpg";
-import gulabJamun from "../../assets/images/gulab-jamun.webp";
-
-const FALLBACK_IMAGES = [butterChicken, biryani, masalaDosa, choleBhature, gulabJamun];
 const MEDALS = ["bg-[#F6B100] text-[#1a1a1a]", "bg-tint/15 text-ink", "bg-tint/10 text-ink-2"];
 
 const PopularDishes = () => {
@@ -23,10 +15,7 @@ const PopularDishes = () => {
 
   const totalOrders = resData?.data?.totalOrders || 0;
 
-  const popularDishes = useMemo(
-    () => (resData?.data?.data || []).map((d, idx) => ({ ...d, image: FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length] })),
-    [resData]
-  );
+  const popularDishes = useMemo(() => resData?.data?.data || [], [resData]);
   const topCount = popularDishes[0]?.count || 1;
 
   return (
@@ -57,22 +46,13 @@ const PopularDishes = () => {
           {popularDishes.map((dish, idx) => (
             <div
               key={dish.name}
-              className="group flex items-center gap-3 rounded-xl border border-transparent bg-tint/[0.02] p-2 transition-all hover:border-tint/5 hover:bg-tint/[0.05]"
+              className="group flex items-center gap-3 rounded-xl border border-transparent bg-tint/[0.02] px-2.5 py-2.5 transition-all hover:border-tint/5 hover:bg-tint/[0.05]"
             >
               <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                 idx < 3 ? MEDALS[idx] : "bg-tint/5 text-ink-3"
               }`}>
                 {idx + 1}
               </span>
-              <img
-                src={dish.image}
-                alt={dish.name}
-                width={40}
-                height={40}
-                loading="lazy"
-                decoding="async"
-                className="h-10 w-10 shrink-0 rounded-lg object-cover ring-1 ring-tint/10 transition-transform duration-300 group-hover:scale-105"
-              />
               <div className="min-w-0 flex-1">
                 <h3 className="truncate text-sm font-semibold text-ink">{dish.name}</h3>
                 <div className="mt-1.5 flex items-center gap-2">

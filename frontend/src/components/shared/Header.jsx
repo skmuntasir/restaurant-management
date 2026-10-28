@@ -64,7 +64,7 @@ const Header = () => {
     <header className="sticky top-0 z-40 flex h-20 items-center justify-between border-b border-tint/5 bg-page/95 px-3 sm:px-8">
       {/* LOGO */}
       <button onClick={() => navigate("/")} className="group flex items-center gap-3 rounded-lg" aria-label="Go to home">
-        <img src={logo} className="logo-adaptive h-9 w-9 transition-transform group-hover:rotate-6" alt="" />
+        <img src={logo} className="h-9 w-9 transition-transform group-hover:rotate-6 sm:h-11 sm:w-11" alt="" />
         <h1 className="text-gold hidden font-display text-2xl font-bold tracking-wide min-[440px]:block">Red Wood</h1>
       </button>
 
