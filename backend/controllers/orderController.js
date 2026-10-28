@@ -325,21 +325,36 @@ const getOrders = async (req, res, next) => {
 const getPopularItems = async (req, res, next) => {
   try {
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
+
+    // Only rank dishes that are still on the menu. Old orders keep a snapshot of
+    // the dish they sold (so sales history stays correct), but a dish that was
+    // deleted from the menu must not keep topping "Popular dishes" forever.
+    const menu = await MenuItem.find({}, "name").lean();
+    const nameById = new Map(menu.map((m) => [String(m._id), m.name]));
+    const menuIds = menu.map((m) => m._id);
+
     // Merged orders were folded into another order (counting them would count
     // the same dishes twice) and cancelled orders never happened.
-    const match = { orderStatus: { $nin: ["merged", "cancelled"] } };
+    const match = {
+      orderStatus: { $nin: ["merged", "cancelled"] },
+      items: { $elemMatch: { menuItem: { $in: menuIds } } },
+    };
 
-    const [data, totalOrders] = await Promise.all([
+    const [rows, totalOrders] = await Promise.all([
       Order.aggregate([
         { $match: match },
         { $unwind: "$items" },
-        { $group: { _id: "$items.name", count: { $sum: "$items.quantity" } } },
-        { $sort: { count: -1, _id: 1 } },
-        { $limit: limit },
-        { $project: { _id: 0, name: "$_id", count: 1 } },
+        { $match: { "items.menuItem": { $in: menuIds } } },
+        { $group: { _id: "$items.menuItem", count: { $sum: "$items.quantity" } } },
       ]),
       Order.countDocuments(match),
     ]);
+
+    // Use the dish's current menu name (it may have been renamed since it was ordered).
+    const data = rows
+      .map((r) => ({ name: nameById.get(String(r._id)), count: r.count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+      .slice(0, limit);
 
     res.status(200).json({ success: true, data, totalOrders });
   } catch (error) {

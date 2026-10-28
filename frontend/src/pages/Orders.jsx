@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { FiSearch } from "react-icons/fi";
 import { motion } from "framer-motion";
+import { useSelector } from "react-redux";
 import OrderCard from "../components/orders/OrderCard";
 import BackButton from "../components/shared/BackButton";
 import Skeleton from "../components/ui/Skeleton";
 import { enqueueSnackbar } from "notistack";
-import { isCreatedToday, isOpenOrder } from "../utils";
+import { isCreatedToday, isOpenOrder, getAvatarName, getBgColor } from "../utils";
 import { useRecentOrders } from "../hooks/useOrders";
 
 const FILTERS = [
@@ -25,6 +26,8 @@ const filterDot = {
 const Orders = () => {
   const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
+  const [staff, setStaff] = useState("all"); // admin-only filter: who took the order
+  const isAdmin = useSelector((state) => state.user.role)?.toLowerCase() === "admin";
 
   const { orders: allOrders, isError, isLoading } = useRecentOrders({ refetchInterval: 10000 });
 
@@ -45,15 +48,40 @@ const Orders = () => {
   );
   const todayCount = useMemo(() => allOrders.filter((o) => isCreatedToday(o.createdAt)).length, [allOrders]);
 
-  const counts = useMemo(() => {
-    const c = { all: visibleOrders.length, pending: 0, "in process": 0, completed: 0 };
-    visibleOrders.forEach((o) => { if (c[o.orderStatus] !== undefined) c[o.orderStatus]++; });
-    return c;
+  // Who took how many of the orders on this board (admin only). A deleted user
+  // comes back as createdBy: null, so those are grouped as "Former staff".
+  const staffStats = useMemo(() => {
+    const map = new Map();
+    visibleOrders.forEach((o) => {
+      const id = o.createdBy?._id || "former";
+      const entry = map.get(id) || {
+        id,
+        name: o.createdBy?.name || "Former staff",
+        isAdmin: o.createdBy?.role?.toLowerCase() === "admin",
+        count: 0,
+      };
+      entry.count++;
+      map.set(id, entry);
+    });
+    return [...map.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
   }, [visibleOrders]);
+
+  // If the chosen person drops off the board (e.g. the day rolled over), fall back to everyone.
+  const activeStaff = staff !== "all" && staffStats.some((s) => s.id === staff) ? staff : "all";
+  const staffOrders = useMemo(
+    () => (activeStaff === "all" ? visibleOrders : visibleOrders.filter((o) => (o.createdBy?._id || "former") === activeStaff)),
+    [visibleOrders, activeStaff]
+  );
+
+  const counts = useMemo(() => {
+    const c = { all: staffOrders.length, pending: 0, "in process": 0, completed: 0 };
+    staffOrders.forEach((o) => { if (c[o.orderStatus] !== undefined) c[o.orderStatus]++; });
+    return c;
+  }, [staffOrders]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return visibleOrders.filter((o) => {
+    return staffOrders.filter((o) => {
       if (status !== "all" && o.orderStatus !== status) return false;
       if (!q) return true;
       return (
@@ -63,7 +91,7 @@ const Orders = () => {
         String(o.table?.tableNo ?? "").includes(q.replace(/^t/, ""))
       );
     });
-  }, [visibleOrders, status, search]);
+  }, [staffOrders, status, search]);
 
   return (
     <section className="page-ambient flex h-[calc(100dvh-5rem)] flex-col overflow-hidden overscroll-none">
@@ -123,6 +151,40 @@ const Orders = () => {
             );
           })}
         </div>
+
+        {/* Admin only: who took how many orders. Tap a person to see just their orders. */}
+        {isAdmin && staffStats.length > 0 && (
+          <div className="mx-auto mt-3 flex max-w-[1400px] items-center gap-2 overflow-x-auto scrollbar-hide" role="group" aria-label="Filter by staff member">
+            <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-3">Taken by</span>
+            {[{ id: "all", name: "Everyone", count: visibleOrders.length }, ...staffStats].map((s) => {
+              const active = activeStaff === s.id;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setStaff(s.id)}
+                  aria-pressed={active}
+                  className={`flex shrink-0 items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-xs font-semibold transition-colors ${
+                    active ? "border-[#F6B100]/60 bg-[#F6B100]/15 text-ink" : "border-tint/10 bg-tint/5 text-ink-2 hover:text-ink"
+                  } ${s.id === "all" ? "pl-3" : ""}`}
+                >
+                  {s.id !== "all" && (
+                    <span
+                      className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                      style={{ backgroundColor: getBgColor(s.name) }}
+                    >
+                      {getAvatarName(s.name)}
+                    </span>
+                  )}
+                  <span className="max-w-[9rem] truncate">{s.name}</span>
+                  {s.isAdmin && (
+                    <span className="rounded-full bg-[#F6B100]/20 px-1.5 text-[9px] font-bold uppercase tracking-wide text-accent">Admin</span>
+                  )}
+                  <span className={`rounded-full px-1.5 text-[10px] ${active ? "bg-shade/30" : "bg-tint/10"}`}>{s.count}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Orders grid */}

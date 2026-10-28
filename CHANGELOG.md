@@ -1,5 +1,15 @@
 # Changelog
 
+## Staff tracking on the Orders page (admin only)
+- Every order card shows **Taken by <name>**, with an **Admin** badge when an admin took the order.
+- New **Taken by** bar above the orders: how many orders each staff member (admins included) took on the current board. Tap a person to see only their orders; the status counts follow the selection.
+- Orders whose staff account was later deleted are grouped as "Former staff".
+- Frontend only; the API already returned who created each order.
+
+## Popular dishes follow the current menu
+- `GET /api/order/popular` now only ranks dishes that still exist on the menu and shows their current menu name. Dishes deleted from the menu no longer stay in the ranking.
+- Order history and revenue are unchanged. Old orders keep their saved dish names.
+
 ## Mobile-friendly pass
 - Menu: the order panel is now a real bottom sheet on phones (it used to sit beside the menu and squash it).
 - Notification dropdown no longer runs off the left edge on narrow screens.

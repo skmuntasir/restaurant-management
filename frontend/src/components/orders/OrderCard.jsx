@@ -1,7 +1,7 @@
 import React, { useState, memo } from "react";
 import { motion } from "framer-motion";
 import { FaCheckDouble, FaClock, FaSpinner, FaRegCreditCard, FaBan } from "react-icons/fa";
-import { FiPrinter } from "react-icons/fi";
+import { FiPrinter, FiUser } from "react-icons/fi";
 import { MdTableBar } from "react-icons/md";
 import { getAvatarName, getBgColor, formatDate } from "../../utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12,7 +12,7 @@ import { printReceipt } from "../shared/printReceipt";
 import { receiptFromOrder } from "../../utils/receipt";
 import CancelOrderModal from "./CancelOrderModal";
 import { shortOrderId } from "../../utils";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addNotification } from "../../redux/slices/notificationsSlice";
 
 // Forward-only. "Completed" isn't here on purpose: an order finishes when it is
@@ -35,6 +35,7 @@ const isOlderThan24h = (createdAt) =>
 const OrderCard = ({ order }) => {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
+  const isAdmin = useSelector((state) => state.user.role)?.toLowerCase() === "admin";
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
 
@@ -120,6 +121,18 @@ const OrderCard = ({ order }) => {
           <p>{createdAt ? formatDate(new Date(createdAt)) : ""}</p>
           <p>{items?.length || 0} item{(items?.length || 0) !== 1 ? "s" : ""}</p>
         </div>
+
+        {/* Admin only: which staff member took this order */}
+        {isAdmin && (
+          <p className="mt-2 flex min-w-0 items-center gap-1.5 text-xs text-ink-3">
+            <FiUser className="shrink-0" />
+            <span className="shrink-0">Taken by</span>
+            <span className="truncate font-semibold text-ink-2">{order.createdBy?.name || "Former staff"}</span>
+            {order.createdBy?.role?.toLowerCase() === "admin" && (
+              <span className="shrink-0 rounded-full border border-[#F6B100]/30 bg-[#F6B100]/10 px-1.5 py-px text-[10px] font-bold uppercase tracking-wide text-accent">Admin</span>
+            )}
+          </p>
+        )}
 
         <div className="gold-rule my-3 opacity-60" />
 
