@@ -1,5 +1,11 @@
 # Changelog
 
+## Staff tracking on the Dashboard (all time)
+- Dashboard → Orders has a new **Taken by** column (with an **Admin** badge when an admin took the order).
+- New **Orders taken by** bar: how many orders each staff member, admins included, has taken across the whole order history. Tap a person to filter the table to their orders.
+- Search on that table also matches the staff member's name. Orders by deleted accounts are grouped as "Former staff".
+- Frontend only.
+
 ## New Red Wood emblem
 - Browser-tab icon (`public/favicon.png`), header logo and loading-screen logo now use the new circular Red Wood Restro emblem (transparent background, works on light and dark themes).
 - Header no longer applies the light-mode colour inversion that the old white logo needed.
