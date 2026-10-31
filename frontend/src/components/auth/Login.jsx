@@ -6,7 +6,7 @@ import { login } from "../../https/index";
 import { useDispatch } from "react-redux";
 import { setUser } from "../../redux/slices/userSlice";
 import { useNavigate } from "react-router-dom";
-import { markSessionActive, waitForBootLogout } from "../../utils/session";
+import { markSessionActive, setAuthToken, waitForBootLogout } from "../../utils/session";
 import AuthField from "./AuthField";
 
 const EMAIL_RE = /\S+@\S+\.\S+/;
@@ -60,6 +60,7 @@ const Login = ({ initialEmail = "" }) => {
       dispatch(setUser({ _id, name, email, phone, role }));
       // Mark this tab as having an active authenticated session.
       // sessionStorage is cleared automatically when the tab or browser closes.
+      setAuthToken(data.token);
       markSessionActive();
       navigate("/");
     },

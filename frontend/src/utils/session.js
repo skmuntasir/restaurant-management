@@ -20,8 +20,29 @@ export const hasActiveSession = () => {
 export const markSessionActive = () => {
   try { sessionStorage.setItem(SESSION_KEY, "1"); } catch { /* storage unavailable */ }
 };
+/**
+ * Bearer token (same JWT as the cookie). Phone browsers block the cross-site
+ * cookie your Render API sets for the Vercel site, so the app also sends the
+ * token in an Authorization header. It lives in sessionStorage — exactly like
+ * the session flag — so closing the tab/browser still signs the user out.
+ */
+const TOKEN_KEY = "restro_auth_token";
+let memoryToken = null; // fallback if sessionStorage is unavailable (private mode)
+
+export const setAuthToken = (token) => {
+  memoryToken = token || null;
+  try {
+    if (token) sessionStorage.setItem(TOKEN_KEY, token);
+    else sessionStorage.removeItem(TOKEN_KEY);
+  } catch { /* storage unavailable */ }
+};
+export const getAuthToken = () => {
+  try { return sessionStorage.getItem(TOKEN_KEY) || memoryToken; } catch { return memoryToken; }
+};
+
 export const clearSession = () => {
   try { sessionStorage.removeItem(SESSION_KEY); } catch { /* storage unavailable */ }
+  setAuthToken(null);
 };
 
 /**
@@ -49,8 +70,22 @@ export const waitForBootLogout = () => bootLogout;
  * signed in.
  */
 const ALIVE_KEY = "restro_last_alive";
-const ALIVE_GRACE_MS = 15000;
 const HEARTBEAT_MS = 2000;
+
+// Desktop: a closed browser is detected after 15 s without a heartbeat.
+// Phones: switching to another app freezes this page's timers and the OS may
+// unload it, so a short grace would sign people out just for checking a
+// message. Touch devices therefore get 30 minutes.
+const DESKTOP_GRACE_MS = 15000;
+const MOBILE_GRACE_MS = 30 * 60 * 1000;
+const isTouchDevice = () => {
+  try {
+    return window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(hover: none)").matches;
+  } catch {
+    return false;
+  }
+};
+const ALIVE_GRACE_MS = typeof window !== "undefined" && isTouchDevice() ? MOBILE_GRACE_MS : DESKTOP_GRACE_MS;
 
 const writeAlive = () => {
   try { localStorage.setItem(ALIVE_KEY, String(Date.now())); } catch { /* storage unavailable */ }
@@ -70,7 +105,8 @@ if (typeof window !== "undefined") {
   if (browserWasClosed()) clearSession();
   writeAlive();
   setInterval(writeAlive, HEARTBEAT_MS);
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") writeAlive();
-  });
+  // Also stamp the moment the page is hidden/unloaded (app switch, tab discard),
+  // so the grace period counts from when the user actually left.
+  document.addEventListener("visibilitychange", () => writeAlive());
+  window.addEventListener("pagehide", writeAlive);
 }

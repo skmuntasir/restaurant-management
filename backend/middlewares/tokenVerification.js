@@ -5,7 +5,13 @@ const User = require("../models/userModel");
 
 const isVerifiedUser = async (req, res, next) => {
     try {
-        const { accessToken } = req.cookies;
+        // Cookie first (desktop / same-site). Phone browsers (iOS Safari, Chrome
+        // on Android, Brave...) block the cross-site cookie set by the API host
+        // when the app is served from a different domain, so the app also sends
+        // the same token as `Authorization: Bearer <token>`.
+        const header = req.headers.authorization || "";
+        const bearer = /^Bearer\s+(.+)$/i.test(header) ? header.replace(/^Bearer\s+/i, "").trim() : null;
+        const accessToken = (req.cookies && req.cookies.accessToken) || bearer;
 
         if (!accessToken) {
             const error = createHttpError(401, "Please provide token!");

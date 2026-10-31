@@ -3,7 +3,7 @@ import store from "../redux/store";
 import { removeUser } from "../redux/slices/userSlice";
 import { removeAllItems } from "../redux/slices/cartSlice";
 import { removeCustomer } from "../redux/slices/customerSlice";
-import { clearSession } from "../utils/session";
+import { clearSession, getAuthToken } from "../utils/session";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -14,6 +14,14 @@ const api = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
+});
+
+// Send the token as a header too (cookies alone are blocked on phones when the
+// frontend and API are on different domains).
+api.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
 // If the session expires mid-shift the API answers 401. Instead of every

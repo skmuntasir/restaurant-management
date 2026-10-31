@@ -196,7 +196,9 @@ const login = async (req, res, next) => {
         const safeUser = isUserPresent.toObject();
         delete safeUser.password;
 
-        res.status(200).json({ success: true, message: "User login successfully!", data: safeUser });
+        // `token` lets the frontend authenticate via an Authorization header on
+        // browsers that refuse the cross-site cookie (all phones, effectively).
+        res.status(200).json({ success: true, message: "User login successfully!", data: safeUser, token: accessToken });
 
     } catch (error) {
         next(error);

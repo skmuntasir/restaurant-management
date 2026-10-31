@@ -1,5 +1,16 @@
 # Changelog
 
+## Auto-logout grace on phones: 30 minutes
+- The "browser was closed" check in `frontend/src/utils/session.js` now waits 30 minutes on touch devices (it stays 15 seconds on desktop), so switching to another app and coming back no longer signs you out.
+- The last-alive time is also stamped when the page is hidden or unloaded, so the 30 minutes counts from when you left.
+- Frontend only.
+
+## Fix: login bounced back to the login page on phones
+- **Cause:** the session cookie is set by the Render API but the site is served from Vercel (a different domain). Phone browsers (iOS Safari, Chrome/Brave on Android) block that cross-site cookie, so the login succeeded but the very next request had no session and the app returned to the login screen. Desktop browsers still allowed it, which is why it only showed on phones.
+- **Fix:** the login response now also returns the token; the app keeps it in `sessionStorage` (cleared when the tab/browser closes, same as before) and sends it as `Authorization: Bearer <token>` on every API call. The API accepts the cookie *or* the header. Cookie behaviour is unchanged, so desktop and existing sessions keep working.
+- Files: `backend/controllers/userController.js`, `backend/middlewares/tokenVerification.js`, `frontend/src/utils/session.js`, `frontend/src/https/index.js`, `frontend/src/components/auth/Login.jsx`.
+- No UI, layout or other behaviour changes. **Redeploy both Render (backend) and Vercel (frontend).**
+
 ## Staff tracking on the Dashboard (all time)
 - Dashboard → Orders has a new **Taken by** column (with an **Admin** badge when an admin took the order).
 - New **Orders taken by** bar: how many orders each staff member, admins included, has taken across the whole order history. Tap a person to filter the table to their orders.
